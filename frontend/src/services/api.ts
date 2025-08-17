@@ -41,4 +41,12 @@ export const api = {
     }
     return response.json();
   },
+
+  async verifyCompletion(): Promise<{ complete: boolean; last_update: string; status: string }> {
+    const response = await fetch(`${API_URL}/verify-completion`);
+    if (!response.ok) {
+      throw new Error('Failed to verify completion');
+    }
+    return response.json();
+  },
 };

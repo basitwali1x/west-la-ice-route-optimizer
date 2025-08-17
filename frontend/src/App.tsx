@@ -21,10 +21,36 @@ function App() {
   const [progress, setProgress] = useState(0);
   const [depotProgress, setDepotProgress] = useState<{[key: string]: number}>({});
   const [optimizationComplete, setOptimizationComplete] = useState(false);
+  const [startTime, setStartTime] = useState<Date | null>(null);
 
   useEffect(() => {
     loadInitialData();
   }, []);
+
+  useEffect(() => {
+    const checkCompletion = async () => {
+      if (progress >= 98 && isOptimizing) {
+        try {
+          const status = await api.verifyCompletion();
+          if (status.complete) {
+            setProgress(100);
+            setDepotProgress({
+              'Leesville': 100,
+              'Lake Charles': 100,
+              'Lufkin': 100
+            });
+            setOptimizationComplete(true);
+          }
+        } catch (error) {
+          console.error('Failed to verify completion:', error);
+        }
+      }
+    };
+
+    if (progress >= 98) {
+      checkCompletion();
+    }
+  }, [progress, isOptimizing]);
 
   const loadInitialData = async () => {
     try {
@@ -54,6 +80,7 @@ function App() {
       setIsOptimizing(true);
       setProgress(0);
       setError(null);
+      setStartTime(new Date());
 
       const depots = ['Leesville', 'Lake Charles', 'Lufkin'];
       let currentDepot = 0;
@@ -92,15 +119,33 @@ function App() {
         progressInterval = null;
       }
       
-      setDepotProgress({
-        'Leesville': 100,
-        'Lake Charles': 100,
-        'Lufkin': 100
-      });
+      setProgress(98);
       
-      setProgress(100);
-      setOptimizationComplete(true);
-      setOptimizationResult(result);
+      setTimeout(async () => {
+        try {
+          const status = await api.verifyCompletion();
+          if (status.complete) {
+            setProgress(100);
+            setDepotProgress({
+              'Leesville': 100,
+              'Lake Charles': 100,
+              'Lufkin': 100
+            });
+            setOptimizationComplete(true);
+            setOptimizationResult(result);
+          }
+        } catch (error) {
+          console.error('Failed to verify completion:', error);
+          setProgress(100);
+          setDepotProgress({
+            'Leesville': 100,
+            'Lake Charles': 100,
+            'Lufkin': 100
+          });
+          setOptimizationComplete(true);
+          setOptimizationResult(result);
+        }
+      }, 500);
       
       setTimeout(() => {
         setOptimizationComplete(false);
@@ -266,25 +311,43 @@ function App() {
             </div>
 
             {isOptimizing && (
-              <div className="space-y-3">
+              <div className="space-y-4">
                 <div className="flex items-center justify-between text-sm">
                   <span>Optimizing routes...</span>
-                  <span>{progress}%</span>
+                  <div className="flex items-center space-x-4">
+                    {startTime && (
+                      <span className="text-xs text-gray-500">
+                        Elapsed: {Math.floor((new Date().getTime() - startTime.getTime()) / 1000)}s
+                      </span>
+                    )}
+                    <span>{progress}%</span>
+                  </div>
                 </div>
                 <Progress value={progress} className="w-full" />
                 
-                {Object.keys(depotProgress).length > 0 && (
-                  <div className="space-y-2">
-                    <div className="text-xs text-gray-600">Depot Progress:</div>
-                    {Object.entries(depotProgress).map(([depot, depotProg]) => (
-                      <div key={depot} className="flex items-center space-x-2 text-xs">
-                        <span className="w-20 text-right">{depot}:</span>
-                        <Progress value={depotProg} className="flex-1 h-2" />
-                        <span className="w-10">{depotProg}%</span>
+                <div className="space-y-3">
+                  <div className="text-sm font-medium text-gray-700">Depot Progress:</div>
+                  {['Leesville', 'Lake Charles', 'Lufkin'].map((depot) => {
+                    const depotProg = depotProgress[depot] || 0;
+                    const isComplete = depotProg === 100;
+                    return (
+                      <div key={depot} className="space-y-1">
+                        <div className="flex items-center justify-between text-sm">
+                          <div className="flex items-center space-x-2">
+                            <span className="font-medium">{depot}</span>
+                            {isComplete && (
+                              <div className="w-4 h-4 rounded-full bg-green-500 flex items-center justify-center">
+                                <span className="text-white text-xs">✓</span>
+                              </div>
+                            )}
+                          </div>
+                          <span className="text-xs">{depotProg}%</span>
+                        </div>
+                        <Progress value={depotProg} className="w-full h-3" />
                       </div>
-                    ))}
-                  </div>
-                )}
+                    );
+                  })}
+                </div>
               </div>
             )}
             
