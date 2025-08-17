@@ -38,6 +38,8 @@ export interface RouteOptimizationResponse {
   total_distance_miles: number;
   total_time_minutes: number;
   depot_locations: DepotLocation[];
+  status: string;
+  progress: number;
 }
 
 export interface RouteOptimizationRequest {

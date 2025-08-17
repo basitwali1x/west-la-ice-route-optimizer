@@ -19,6 +19,8 @@ function App() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [progress, setProgress] = useState(0);
+  const [depotProgress, setDepotProgress] = useState<{[key: string]: number}>({});
+  const [optimizationComplete, setOptimizationComplete] = useState(false);
 
   useEffect(() => {
     loadInitialData();
@@ -46,14 +48,32 @@ function App() {
   const optimizeRoutes = async () => {
     if (customers.length === 0) return;
 
+    let progressInterval: NodeJS.Timeout | null = null;
+
     try {
       setIsOptimizing(true);
       setProgress(0);
       setError(null);
 
-      const progressInterval = setInterval(() => {
-        setProgress(prev => Math.min(prev + 10, 90));
-      }, 500);
+      const depots = ['Leesville', 'Lake Charles', 'Lufkin'];
+      let currentDepot = 0;
+      
+      progressInterval = setInterval(() => {
+        setProgress(prev => {
+          if (prev < 85) {
+            const depotName = depots[currentDepot % depots.length];
+            setDepotProgress(prevDepot => ({
+              ...prevDepot,
+              [depotName]: Math.min((prevDepot[depotName] || 0) + 15, 100)
+            }));
+            
+            if (prev % 25 === 0) currentDepot++;
+            return prev + 5;
+          }
+          if (prev < 98) return prev + 1;
+          return prev;
+        });
+      }, 300);
 
       const result = await api.optimizeRoutes({
         customers,
@@ -65,15 +85,45 @@ function App() {
         ]
       });
 
-      clearInterval(progressInterval);
+      console.log('Optimization result received:', result);
+
+      if (progressInterval) {
+        clearInterval(progressInterval);
+        progressInterval = null;
+      }
+      
+      setDepotProgress({
+        'Leesville': 100,
+        'Lake Charles': 100,
+        'Lufkin': 100
+      });
+      
       setProgress(100);
+      setOptimizationComplete(true);
       setOptimizationResult(result);
+      
+      setTimeout(() => {
+        setOptimizationComplete(false);
+      }, 2000);
+      
+      setTimeout(() => {
+        setProgress(0);
+        setDepotProgress({});
+        setOptimizationComplete(false);
+      }, 3000);
+      
     } catch (err) {
-      setError('Failed to optimize routes');
+      if (progressInterval) {
+        clearInterval(progressInterval);
+        progressInterval = null;
+      }
+      setProgress(0);
+      setDepotProgress({});
+      setOptimizationComplete(false);
+      setError('Failed to optimize routes. Please try again.');
       console.error('Error optimizing routes:', err);
     } finally {
       setIsOptimizing(false);
-      setTimeout(() => setProgress(0), 1000);
     }
   };
 
@@ -216,12 +266,34 @@ function App() {
             </div>
 
             {isOptimizing && (
-              <div className="space-y-2">
+              <div className="space-y-3">
                 <div className="flex items-center justify-between text-sm">
                   <span>Optimizing routes...</span>
                   <span>{progress}%</span>
                 </div>
                 <Progress value={progress} className="w-full" />
+                
+                {Object.keys(depotProgress).length > 0 && (
+                  <div className="space-y-2">
+                    <div className="text-xs text-gray-600">Depot Progress:</div>
+                    {Object.entries(depotProgress).map(([depot, depotProg]) => (
+                      <div key={depot} className="flex items-center space-x-2 text-xs">
+                        <span className="w-20 text-right">{depot}:</span>
+                        <Progress value={depotProg} className="flex-1 h-2" />
+                        <span className="w-10">{depotProg}%</span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+            
+            {optimizationComplete && (
+              <div className="flex items-center space-x-2 text-green-600 text-sm font-medium">
+                <div className="w-4 h-4 rounded-full bg-green-500 flex items-center justify-center">
+                  <span className="text-white text-xs">✓</span>
+                </div>
+                <span>Optimization completed successfully!</span>
               </div>
             )}
 

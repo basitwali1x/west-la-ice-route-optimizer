@@ -79,7 +79,9 @@ async def optimize_routes(request: RouteOptimizationRequest):
             routes=routes,
             total_distance_miles=round(total_distance, 2),
             total_time_minutes=round(total_time, 2),
-            depot_locations=depot_locations
+            depot_locations=depot_locations,
+            status="complete",
+            progress=100
         )
         
     except Exception as e:

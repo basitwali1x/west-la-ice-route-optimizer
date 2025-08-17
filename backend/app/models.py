@@ -42,3 +42,5 @@ class RouteOptimizationResponse(BaseModel):
     total_distance_miles: float
     total_time_minutes: float
     depot_locations: List[DepotLocation]
+    status: str = "complete"
+    progress: int = 100
