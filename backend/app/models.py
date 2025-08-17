@@ -1,0 +1,44 @@
+from pydantic import BaseModel
+from typing import List, Optional
+
+class Customer(BaseModel):
+    id: int
+    name: str
+    address: str
+    depot: str
+    truck: Optional[str] = None
+    day: Optional[str] = None
+    latitude: Optional[float] = None
+    longitude: Optional[float] = None
+
+class RouteOptimizationRequest(BaseModel):
+    customers: List[Customer]
+    num_vehicles: int = 8
+    depot_addresses: List[str]
+
+class RoutePoint(BaseModel):
+    customer_id: int
+    customer_name: str
+    address: str
+    latitude: float
+    longitude: float
+    order: int
+
+class VehicleRoute(BaseModel):
+    vehicle_id: int
+    depot_name: str
+    route_points: List[RoutePoint]
+    total_distance_miles: float
+    total_time_minutes: float
+
+class DepotLocation(BaseModel):
+    name: str
+    address: str
+    latitude: float
+    longitude: float
+
+class RouteOptimizationResponse(BaseModel):
+    routes: List[VehicleRoute]
+    total_distance_miles: float
+    total_time_minutes: float
+    depot_locations: List[DepotLocation]
