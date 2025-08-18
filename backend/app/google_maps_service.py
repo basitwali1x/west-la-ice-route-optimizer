@@ -100,8 +100,8 @@ class GoogleMapsService:
         
         return all_results
     
-    async def calculate_distance_matrix(self, locations: List[str]) -> List[List[float]]:
-        """Calculate distance matrix for all locations in miles"""
+    async def calculate_distance_matrix(self, locations: List[str], depot_penalties: bool = True) -> List[List[float]]:
+        """Calculate distance matrix for all locations in miles with optional depot penalties"""
         n = len(locations)
         distance_matrix = [[0.0 for _ in range(n)] for _ in range(n)]
         
@@ -109,7 +109,7 @@ class GoogleMapsService:
         
         if n > 100:
             print("Using simplified distance calculation for large dataset")
-            return self._calculate_simplified_distance_matrix(locations)
+            return self._calculate_simplified_distance_matrix(locations, depot_penalties)
         
         result = await self.get_distance_matrix_batch(locations, locations)
         
@@ -122,17 +122,21 @@ class GoogleMapsService:
                             distance_miles = float(distance_text.replace(" mi", "").replace(",", ""))
                         else:
                             distance_miles = element["distance"]["value"] * 0.000621371  # meters to miles
+                        
+                        if depot_penalties and self._is_cross_depot_travel(locations[i], locations[j]):
+                            distance_miles *= 1.5
+                            
                         distance_matrix[i][j] = distance_miles
                     else:
                         print(f"API error for distance calculation: {element.get('status', 'Unknown error')}")
                         distance_matrix[i][j] = 10.0  # Default 10 miles
         else:
             print("No rows in distance matrix result, using simplified calculation")
-            return self._calculate_simplified_distance_matrix(locations)
+            return self._calculate_simplified_distance_matrix(locations, depot_penalties)
         
         return distance_matrix
     
-    def _calculate_simplified_distance_matrix(self, locations: List[str]) -> List[List[float]]:
+    def _calculate_simplified_distance_matrix(self, locations: List[str], depot_penalties: bool = True) -> List[List[float]]:
         """Calculate simplified distance matrix using haversine formula with realistic coordinates"""
         import math
         
@@ -178,7 +182,32 @@ class GoogleMapsService:
                          math.sin(dlng/2) * math.sin(dlng/2))
                     c = 2 * math.atan2(math.sqrt(a), math.sqrt(1-a))
                     distance_miles = 3959 * c  # Earth radius in miles
+                    
+                    if depot_penalties and self._is_cross_depot_travel(locations[i], locations[j]):
+                        distance_miles *= 1.5
+                    
                     distance_matrix[i][j] = distance_miles
         
         print(f"Calculated simplified distance matrix with average distance: {sum(sum(row) for row in distance_matrix) / (n*n):.2f} miles")
         return distance_matrix
+    
+    def _get_depot_for_location(self, location: str) -> str:
+        """Determine which depot a location belongs to"""
+        if location == "1707 Smart Street, Leesville, LA 71446":
+            return "Leesville"
+        elif location == "220 Bunker Road, Lake Charles, LA 70615":
+            return "Lake Charles"
+        elif location == "1107 Weiner St, Lufkin, TX 75904":
+            return "Lufkin"
+        elif "Lufkin" in location or "TX" in location or "Huntington" in location or "Zavalla" in location or "Ratcliff" in location:
+            return "Lufkin"
+        elif "Lake Charles" in location or "LA 706" in location:
+            return "Lake Charles"
+        else:
+            return "Leesville"
+    
+    def _is_cross_depot_travel(self, origin: str, destination: str) -> bool:
+        """Check if travel is between different depots"""
+        origin_depot = self._get_depot_for_location(origin)
+        dest_depot = self._get_depot_for_location(destination)
+        return origin_depot != dest_depot

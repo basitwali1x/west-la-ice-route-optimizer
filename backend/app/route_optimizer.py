@@ -2,8 +2,33 @@ from ortools.constraint_solver import routing_enums_pb2
 from ortools.constraint_solver import pywrapcp
 from typing import List, Dict, Optional
 import asyncio
+import math
 from .models import Customer, VehicleRoute, RoutePoint
 from .google_maps_service import GoogleMapsService
+
+LUFKIN_MONDAY_STOPS = [
+    "Big's 3822,3644 Hwy 69N",
+    "Big's 3825,3889 N Hwy 69", 
+    "Fairview Grocery",
+    "Hernandez",
+    "Joc Stop",
+    "Lucky's",
+    "M&B's", 
+    "New Way",
+    "TXI Operations",
+    "Lakeview RV",
+    "Chubby's",
+    "Angeline Forest Service",
+    "Texas-Sabine National Forest",
+    "Lakeside",
+    "Roy O Martin OSB"
+]
+
+DEPOT_CONSTRAINTS = {
+    "Lufkin": {"max_distance": 50, "max_stops_monday": 15},
+    "Lake Charles": {"max_distance": 75, "max_stops": None},
+    "Leesville": {"max_distance": 100, "max_stops": None}
+}
 
 class RouteOptimizer:
     def __init__(self):
@@ -93,6 +118,28 @@ class RouteOptimizer:
         )
         distance_dimension = routing.GetDimensionOrDie(dimension_name)
         distance_dimension.SetGlobalSpanCostCoefficient(100)
+        
+        if depot_name == "Lufkin":
+            routing.AddDimension(
+                transit_callback_index,
+                0,  # no slack
+                5000000,  # 50 miles * 100 (for int conversion)
+                True,  # start cumul to zero
+                'LufkinDistance'
+            )
+            
+            routing.AddConstantDimension(
+                1,  # increment by 1 per stop
+                15,  # maximum stops
+                True,  # start to zero
+                'LufkinStops'
+            )
+        
+        penalty = 1000000
+        for i, customer in enumerate(customers):
+            customer_idx = i + 1  # +1 for depot offset
+            if depot_name == "Lufkin" and any(stop_name in customer.name for stop_name in LUFKIN_MONDAY_STOPS):
+                routing.AddDisjunction([manager.NodeToIndex(customer_idx)], penalty)
         
         search_parameters = pywrapcp.DefaultRoutingSearchParameters()
         search_parameters.first_solution_strategy = (
@@ -214,3 +261,47 @@ class RouteOptimizer:
             start_idx = end_idx
         
         return routes
+    
+    def enforce_depot_isolation(self, routes: List[VehicleRoute]) -> List[str]:
+        """Enforce depot isolation and return any violations"""
+        violations = []
+        
+        for route in routes:
+            depot_name = route.depot_name
+            
+            max_distance = DEPOT_CONSTRAINTS.get(depot_name, {}).get("max_distance", 100)
+            
+            for point in route.route_points:
+                depot_coords = self._get_depot_coordinates(depot_name)
+                customer_coords = (point.latitude, point.longitude)
+                distance = self._calculate_haversine_distance(depot_coords, customer_coords)
+                
+                if distance > max_distance:
+                    violations.append(f"Stop {point.customer_name} is {distance:.1f} miles from {depot_name} depot (max: {max_distance})")
+            
+            if depot_name == "Lufkin" and len(route.route_points) > 15:
+                violations.append(f"Lufkin route has {len(route.route_points)} stops (max: 15 for Monday)")
+                
+        return violations
+    
+    def _get_depot_coordinates(self, depot_name: str) -> tuple:
+        """Get coordinates for depot"""
+        depot_coords = {
+            "Leesville": (31.1435, -93.2607),
+            "Lake Charles": (30.2266, -93.2174),
+            "Lufkin": (31.3382, -94.7291)
+        }
+        return depot_coords.get(depot_name, (31.1435, -93.2607))
+    
+    def _calculate_haversine_distance(self, coord1: tuple, coord2: tuple) -> float:
+        """Calculate distance between two coordinates in miles"""
+        lat1, lng1 = coord1
+        lat2, lng2 = coord2
+        
+        dlat = math.radians(lat2 - lat1)
+        dlng = math.radians(lng2 - lng1)
+        a = (math.sin(dlat/2) * math.sin(dlat/2) + 
+             math.cos(math.radians(lat1)) * math.cos(math.radians(lat2)) * 
+             math.sin(dlng/2) * math.sin(dlng/2))
+        c = 2 * math.atan2(math.sqrt(a), math.sqrt(1-a))
+        return 3959 * c  # Earth radius in miles

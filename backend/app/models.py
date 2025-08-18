@@ -45,3 +45,20 @@ class RouteOptimizationResponse(BaseModel):
     depot_locations: List[DepotLocation]
     status: str = "complete"
     progress: int = 100
+
+class DepotConstraint(BaseModel):
+    depot_name: str
+    max_distance_miles: float
+    max_stops: Optional[int] = None
+    allowed_vehicles: Optional[List[str]] = None
+    penalty_multiplier: float = 1.0
+
+class RouteValidationRequest(BaseModel):
+    stops: List[Dict]
+    depot: str
+    day: str = "Monday"
+
+class RouteValidationResponse(BaseModel):
+    valid: bool
+    errors: List[str]
+    warnings: Optional[List[str]] = None
