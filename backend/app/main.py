@@ -4,10 +4,11 @@ from dotenv import load_dotenv
 import os
 from typing import List
 
-from .models import Customer, RouteOptimizationRequest, RouteOptimizationResponse, VehicleRoute, DepotLocation, RouteValidationRequest, RouteValidationResponse
+from .models import Customer, RouteOptimizationRequest, RouteOptimizationResponse, VehicleRoute, DepotLocation, RouteValidationRequest, RouteValidationResponse, SheetsSync, TruckAssignment, DriverRoute, SheetsData
 from .customer_data import load_west_la_ice_customers, get_customer_count
 from .route_optimizer import RouteOptimizer
 from .google_maps_service import GoogleMapsService
+from .google_sheets_service import GoogleSheetsService
 
 load_dotenv()
 
@@ -24,6 +25,7 @@ app.add_middleware(
 
 route_optimizer = RouteOptimizer()
 google_maps_service = GoogleMapsService()
+sheets_service = GoogleSheetsService()
 
 @app.get("/healthz")
 async def healthz():
@@ -87,6 +89,134 @@ async def optimize_routes(request: RouteOptimizationRequest):
         
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error optimizing routes: {str(e)}")
+
+@app.post("/sync-from-sheets")
+async def sync_from_sheets(sheets_sync: SheetsSync):
+    """Pull latest depot assignments from Google Sheets"""
+    try:
+        result = sheets_service.sync_from_sheets(sheets_sync.sheet_id)
+        if "error" in result:
+            raise HTTPException(status_code=400, detail=result["error"])
+        
+        return {
+            "status": "success",
+            "data": result,
+            "message": f"Successfully synced data from sheet {sheets_sync.sheet_id}"
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to sync from sheets: {str(e)}")
+
+@app.post("/optimize-with-sheets")
+async def optimize_with_sheets(sheets_sync: SheetsSync):
+    """Run OR-Tools optimization using sheet-based constraints"""
+    try:
+        sheet_data = sheets_service.sync_from_sheets(sheets_sync.sheet_id)
+        if "error" in sheet_data:
+            raise HTTPException(status_code=400, detail=sheet_data["error"])
+        
+        optimizer = RouteOptimizer(
+            depot_radius=75,
+            max_stops=25,
+            truck_allocations={"Lufkin": 3, "Leesville": 3, "Lake Charles": 2}
+        )
+        
+        customers = []
+        for depot, depot_customers in sheet_data.get("customers", {}).items():
+            for customer_data in depot_customers:
+                if customer_data.get("name") and customer_data.get("address"):
+                    customer = Customer(
+                        id=f"{depot}_{customer_data['name']}",
+                        name=customer_data["name"],
+                        address=customer_data["address"],
+                        latitude=0.0,
+                        longitude=0.0,
+                        depot=depot,
+                        phone=customer_data.get("phone", "")
+                    )
+                    customers.append(customer)
+        
+        request = RouteOptimizationRequest(
+            customers=customers,
+            num_vehicles=8,
+            depot_address=os.getenv("DEPOT_ADDRESS", "1707 Smart Street, Leesville, LA 71446")
+        )
+        
+        result = await optimizer.optimize_routes_with_sheets_constraints(request, sheet_data)
+        
+        return {
+            "status": "success",
+            "optimization_result": result,
+            "sheet_data": sheet_data
+        }
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to optimize with sheets: {str(e)}")
+
+@app.get("/driver-routes/{truck_id}")
+async def get_driver_routes(truck_id: str, day: str = "Monday"):
+    """Get route data for a specific driver/truck"""
+    try:
+        sheet_id = os.getenv("DEFAULT_SHEET_ID", "1priXmXhtP2vVSQ1XUa-Y18-O96OsZ9Qw")
+        sheet_data = sheets_service.sync_from_sheets(sheet_id)
+        
+        if "error" in sheet_data:
+            raise HTTPException(status_code=400, detail=sheet_data["error"])
+        
+        driver_routes = []
+        for assignment in sheet_data.get("route_assignments", []):
+            if assignment.get("truck_id") == truck_id and assignment.get("day") == day:
+                route_points = []
+                for stop in assignment.get("stop_sequence", []):
+                    route_point = {
+                        "customer_id": stop.get("customer_id", ""),
+                        "customer_name": stop.get("customer_name", ""),
+                        "address": stop.get("address", ""),
+                        "latitude": stop.get("latitude", 0.0),
+                        "longitude": stop.get("longitude", 0.0),
+                        "estimated_time": stop.get("estimated_time", ""),
+                        "priority": stop.get("priority", False)
+                    }
+                    route_points.append(route_point)
+                
+                driver_route = DriverRoute(
+                    truck_id=truck_id,
+                    depot=assignment.get("depot", ""),
+                    day=day,
+                    stops=route_points,
+                    total_distance=0.0,
+                    estimated_hours=float(assignment.get("estimated_time", "8").split()[0]) if assignment.get("estimated_time") else 8.0,
+                    priority_stops=[stop.get("customer_id", "") for stop in assignment.get("stop_sequence", []) if stop.get("priority")]
+                )
+                driver_routes.append(driver_route)
+        
+        return {
+            "truck_id": truck_id,
+            "day": day,
+            "routes": driver_routes
+        }
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to get driver routes: {str(e)}")
+
+@app.post("/rebalance-trucks")
+async def rebalance_trucks(rebalance_data: dict):
+    """Dynamic truck reallocation"""
+    try:
+        sheet_id = rebalance_data.get("sheet_id", os.getenv("DEFAULT_SHEET_ID", "1priXmXhtP2vVSQ1XUa-Y18-O96OsZ9Qw"))
+        assignments = rebalance_data.get("assignments", [])
+        
+        success = sheets_service.update_route_assignments(sheet_id, assignments)
+        
+        if success:
+            return {
+                "status": "success",
+                "message": "Truck assignments updated successfully"
+            }
+        else:
+            raise HTTPException(status_code=500, detail="Failed to update truck assignments")
+            
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to rebalance trucks: {str(e)}")
 
 @app.get("/verify-completion")
 async def verify_completion():
