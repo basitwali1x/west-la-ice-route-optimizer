@@ -15,25 +15,50 @@ class GoogleMapsService:
         return self._generate_realistic_coordinates(address)
     
     def _generate_realistic_coordinates(self, address: str) -> Tuple[float, float]:
-        """Generate realistic coordinates using hash-based approach"""
+        """Generate realistic coordinates using hash-based approach with depot-based distribution"""
         import hashlib
         
-        if "Leesville" in address or "1707 Smart Street" in address:
+        print(f"DEBUG: Geocoding address: {address}")
+        
+        if address == "1707 Smart Street, Leesville, LA 71446":
+            print(f"DEBUG: Exact Leesville depot match")
             return (31.1435, -93.2607)
-        elif "Lake Charles" in address or "220 Bunker Road" in address:
+        elif address == "220 Bunker Road, Lake Charles, LA 70615":
+            print(f"DEBUG: Exact Lake Charles depot match")
             return (30.2266, -93.2174)
-        elif "Lufkin" in address or "1107 Weiner St" in address:
+        elif address == "1107 Weiner St, Lufkin, TX 75904":
+            print(f"DEBUG: Exact Lufkin depot match")
             return (31.3382, -94.7291)
         else:
             hash_val = int(hashlib.md5(address.encode()).hexdigest()[:8], 16)
             
-            lat_variation = (hash_val % 1000) / 10000.0  # 0 to 0.1 degree variation
-            lng_variation = (hash_val % 3000) / 10000.0  # 0 to 0.3 degree variation
+            if "Lufkin" in address or "TX" in address or "Huntington" in address or "Zavalla" in address or "Ratcliff" in address:
+                base_lat = 31.3382
+                base_lng = -94.7291
+                lat_range = 0.08  # ~5-6 mile radius
+                lng_range = 0.08
+                print(f"DEBUG: Lufkin region distribution")
+            elif "Lake Charles" in address or "LA 706" in address:
+                base_lat = 30.2266
+                base_lng = -93.2174
+                lat_range = 0.08
+                lng_range = 0.08
+                print(f"DEBUG: Lake Charles region distribution")
+            else:
+                base_lat = 31.1435
+                base_lng = -93.2607
+                lat_range = 0.08
+                lng_range = 0.08
+                print(f"DEBUG: Leesville region distribution (default)")
             
-            base_lat = 34.0522 + lat_variation
-            base_lng = -118.4437 + lng_variation  # Spread across West LA
+            lat_variation = ((hash_val % 1000) / 1000.0 - 0.5) * lat_range  # -0.04 to +0.04 degrees
+            lng_variation = (((hash_val >> 10) % 1000) / 1000.0 - 0.5) * lng_range  # -0.04 to +0.04 degrees
             
-            return (base_lat, base_lng)
+            final_lat = base_lat + lat_variation
+            final_lng = base_lng + lng_variation
+            
+            print(f"DEBUG: Generated coordinates: ({final_lat}, {final_lng})")
+            return (final_lat, final_lng)
     
     async def get_distance_matrix_batch(self, origins: List[str], destinations: List[str]) -> Dict:
         """Get distance matrix with batching to handle API limits"""
@@ -110,29 +135,33 @@ class GoogleMapsService:
     def _calculate_simplified_distance_matrix(self, locations: List[str]) -> List[List[float]]:
         """Calculate simplified distance matrix using haversine formula with realistic coordinates"""
         import math
-        import hashlib
         
         n = len(locations)
         distance_matrix = [[0.0 for _ in range(n)] for _ in range(n)]
         
         coords = []
         for i, location in enumerate(locations):
-            if "Leesville" in location or "1707 Smart Street" in location:
+            if location == "1707 Smart Street, Leesville, LA 71446":
                 coords.append((31.1435, -93.2607))
-            elif "Lake Charles" in location or "220 Bunker Road" in location:
+            elif location == "220 Bunker Road, Lake Charles, LA 70615":
                 coords.append((30.2266, -93.2174))
-            elif "Lufkin" in location or "1107 Weiner St" in location:
+            elif location == "1107 Weiner St, Lufkin, TX 75904":
                 coords.append((31.3382, -94.7291))
             else:
+                import hashlib
                 hash_val = int(hashlib.md5(location.encode()).hexdigest()[:8], 16)
                 
-                lat_variation = (hash_val % 1000) / 10000.0  # 0 to 0.1 degree variation
-                lng_variation = (hash_val % 3000) / 10000.0  # 0 to 0.3 degree variation
+                if "Lufkin" in location or "TX" in location or "Huntington" in location or "Zavalla" in location or "Ratcliff" in location:
+                    base_lat, base_lng = 31.3382, -94.7291
+                elif "Lake Charles" in location or "LA 706" in location:
+                    base_lat, base_lng = 30.2266, -93.2174
+                else:
+                    base_lat, base_lng = 31.1435, -93.2607
                 
-                base_lat = 34.0522 + lat_variation
-                base_lng = -118.4437 + lng_variation  # Spread across West LA
+                lat_variation = ((hash_val % 1000) / 1000.0 - 0.5) * 0.08
+                lng_variation = (((hash_val >> 10) % 1000) / 1000.0 - 0.5) * 0.08
                 
-                coords.append((base_lat, base_lng))
+                coords.append((base_lat + lat_variation, base_lng + lng_variation))
         
         for i in range(n):
             for j in range(n):

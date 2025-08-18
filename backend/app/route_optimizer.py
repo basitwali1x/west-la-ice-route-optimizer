@@ -57,9 +57,10 @@ class RouteOptimizer:
     async def _optimize_single_depot_routes(self, customers: List[Customer], depot_address: str, depot_name: str, num_vehicles: int) -> List[VehicleRoute]:
         all_locations = [depot_address] + [customer.address for customer in customers]
         
+        print(f"Ensuring consistent coordinates for {len(all_locations)} locations in {depot_name} depot")
         geocoded_locations = []
         for location in all_locations:
-            lat, lng = await self.google_maps.geocode_address(location)
+            lat, lng = self.google_maps._generate_realistic_coordinates(location)
             geocoded_locations.append((lat, lng))
         
         distance_matrix = await self.google_maps.calculate_distance_matrix(all_locations)
