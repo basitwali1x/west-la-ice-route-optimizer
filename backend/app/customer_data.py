@@ -2,11 +2,40 @@ import pandas as pd
 from typing import List
 from .models import Customer
 import os
+from .google_sheets_service import GoogleSheetsService
 
 def load_west_la_ice_customers() -> List[Customer]:
     """
-    Load the 447 West LA Ice customers from the provided Excel file.
+    Load the West LA Ice customers from the provided Excel file.
+    If Google Sheets sync has been performed, use that data instead.
     """
+    sheet_id = os.getenv("DEFAULT_SHEET_ID")
+    if sheet_id:
+        try:
+            sheets_service = GoogleSheetsService()
+            sheet_data = sheets_service.sync_from_sheets(sheet_id)
+            
+            if "customers" in sheet_data and not isinstance(sheet_data.get("error", None), str):
+                all_customers = []
+                for depot, depot_customers in sheet_data["customers"].items():
+                    for i, customer_data in enumerate(depot_customers):
+                        if customer_data.get("name") and customer_data.get("address"):
+                            customer = Customer(
+                                id=f"{depot}_{i}",
+                                name=customer_data["name"],
+                                address=customer_data["address"],
+                                depot=depot,
+                                truck=f"Truck {(i % 8) + 1}",
+                                day="Monday",
+                                phone=customer_data.get("phone", "")
+                            )
+                            all_customers.append(customer)
+                
+                if all_customers:
+                    return all_customers
+        except Exception as e:
+            print(f"Error loading from Google Sheets: {e}")
+    
     excel_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'deinjjee.xlsx')
     
     try:
