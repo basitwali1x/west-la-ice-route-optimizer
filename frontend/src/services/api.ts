@@ -1,5 +1,21 @@
 import { Customer, RouteOptimizationRequest, RouteOptimizationResponse } from '../types';
 
+export interface SheetsSync {
+  sheet_id: string;
+  last_sync?: string;
+  status?: string;
+}
+
+export interface DriverRoute {
+  truck_id: string;
+  depot: string;
+  day: string;
+  stops: any[];
+  total_distance: number;
+  estimated_hours: number;
+  priority_stops: string[];
+}
+
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
 
 export const api = {
@@ -76,6 +92,59 @@ export const api = {
     
     if (!response.ok) {
       throw new Error('Failed to reoptimize routes');
+    }
+    return response.json();
+  },
+
+  async syncFromSheets(sheetsSync: SheetsSync): Promise<any> {
+    const response = await fetch(`${API_URL}/sync-from-sheets`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(sheetsSync),
+    });
+    
+    if (!response.ok) {
+      throw new Error('Failed to sync from sheets');
+    }
+    return response.json();
+  },
+
+  async optimizeWithSheets(sheetsSync: SheetsSync): Promise<any> {
+    const response = await fetch(`${API_URL}/optimize-with-sheets`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(sheetsSync),
+    });
+    
+    if (!response.ok) {
+      throw new Error('Failed to optimize with sheets');
+    }
+    return response.json();
+  },
+
+  async getDriverRoutes(truckId: string, day: string = 'Monday'): Promise<any> {
+    const response = await fetch(`${API_URL}/driver-routes/${truckId}?day=${day}`);
+    if (!response.ok) {
+      throw new Error('Failed to fetch driver routes');
+    }
+    return response.json();
+  },
+
+  async rebalanceTrucks(rebalanceData: any): Promise<any> {
+    const response = await fetch(`${API_URL}/rebalance-trucks`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(rebalanceData),
+    });
+    
+    if (!response.ok) {
+      throw new Error('Failed to rebalance trucks');
     }
     return response.json();
   },

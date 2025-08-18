@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Truck, MapPin, Clock, Route, Users, Play, Loader2 } from 'lucide-react';
+import { Truck, MapPin, Clock, Route, Users, Play, Loader2, BarChart3 } from 'lucide-react';
 import { Button } from './components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './components/ui/select';
@@ -7,6 +7,8 @@ import { Badge } from './components/ui/badge';
 import { Progress } from './components/ui/progress';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from './components/ui/tabs';
 import GoogleMap from './components/GoogleMap.tsx';
+import { GoogleSheetsSync } from './components/GoogleSheetsSync';
+import { DriverDashboard } from './components/DriverDashboard';
 import { api } from './services/api';
 import { Customer, RouteOptimizationResponse } from './types';
 
@@ -27,6 +29,8 @@ function App() {
   const [depotProgress, setDepotProgress] = useState<{[key: string]: number}>({});
   const [optimizationComplete, setOptimizationComplete] = useState(false);
   const [startTime, setStartTime] = useState<Date | null>(null);
+  const [sheetsData, setSheetsData] = useState<any>(null);
+  const [selectedTruck] = useState('L1');
 
   useEffect(() => {
     loadInitialData();
@@ -60,6 +64,30 @@ function App() {
   const loadInitialData = async () => {
     try {
       setIsLoading(true);
+      
+      const defaultSheetId = '1et9tMDnHlc1nUQymyeyL2w_GLvzvBJL0XHN1NRzADgc';
+      try {
+        const sheetsSync = {
+          sheet_id: defaultSheetId,
+          status: 'syncing'
+        };
+        
+        const sheetsResult = await api.syncFromSheets(sheetsSync);
+        
+        if (sheetsResult.data && sheetsResult.data.customers && sheetsResult.data.customers['all']) {
+          const allCustomers = sheetsResult.data.customers['all'];
+          setCustomerCount(allCustomers.length);
+          setSheetsData(sheetsResult.data);
+          
+          const customersData = await api.getCustomers();
+          setCustomers(customersData);
+          setError(null);
+          return; // Successfully loaded from Google Sheets
+        }
+      } catch (sheetsError) {
+        console.warn('Google Sheets sync failed, falling back to Excel data:', sheetsError);
+      }
+      
       const [customersData, countData] = await Promise.all([
         api.getCustomers(),
         api.getCustomerCount()
@@ -454,13 +482,88 @@ function App() {
           </CardContent>
         </Card>
 
-        {optimizationResult && (
-          <Tabs defaultValue="map" className="space-y-6">
-            <TabsList className="grid w-full grid-cols-2">
-              <TabsTrigger value="map">Map View</TabsTrigger>
-              <TabsTrigger value="routes">Route Details</TabsTrigger>
-            </TabsList>
+        <Tabs defaultValue="overview" className="space-y-6">
+          <TabsList className="grid w-full grid-cols-5">
+            <TabsTrigger value="overview">Overview</TabsTrigger>
+            <TabsTrigger value="sheets">Google Sheets</TabsTrigger>
+            <TabsTrigger value="driver">Driver Dashboard</TabsTrigger>
+            <TabsTrigger value="map">Route Map</TabsTrigger>
+            <TabsTrigger value="routes">Route Details</TabsTrigger>
+          </TabsList>
 
+          <TabsContent value="overview" className="space-y-6">
+            {optimizationResult && (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center space-x-2">
+                    <BarChart3 className="h-5 w-5" />
+                    <span>Performance Metrics</span>
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm text-gray-600">Total Distance</span>
+                      <span className="font-medium">{optimizationResult.total_distance_miles.toFixed(1)} miles</span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm text-gray-600">Total Time</span>
+                      <span className="font-medium">{(optimizationResult.total_time_minutes / 60).toFixed(1)} hours</span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm text-gray-600">Avg. Distance per Route</span>
+                      <span className="font-medium">
+                        {(optimizationResult.total_distance_miles / optimizationResult.routes.length).toFixed(1)} miles
+                      </span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm text-gray-600">Efficiency Score</span>
+                      <Badge variant="default">
+                        {Math.round((customerCount / (optimizationResult.total_time_minutes / 60)) * 10)}%
+                      </Badge>
+                    </div>
+                    {sheetsData && (
+                      <div className="flex justify-between items-center">
+                        <span className="text-sm text-gray-600">Sheets Integration</span>
+                        <Badge variant="secondary">
+                          {Object.keys(sheetsData.customers || {}).length} depots synced
+                        </Badge>
+                      </div>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+          </TabsContent>
+
+          <TabsContent value="sheets" className="space-y-6">
+            <GoogleSheetsSync 
+              onSyncComplete={(data) => {
+                setSheetsData(data);
+                if (data && data.customers) {
+                  const allCustomers = data.customers['all'] || [];
+                  setCustomerCount(allCustomers.length);
+                }
+                console.log('Sheets data synced:', data);
+              }}
+              onOptimizeComplete={(result) => {
+                setOptimizationResult(result.optimization_result);
+                setSheetsData(result.sheet_data);
+                if (result.sheet_data && result.sheet_data.customers) {
+                  const allCustomers = result.sheet_data.customers['all'] || [];
+                  setCustomerCount(allCustomers.length);
+                }
+                console.log('Optimization complete:', result);
+              }}
+            />
+          </TabsContent>
+
+          <TabsContent value="driver" className="space-y-6">
+            <DriverDashboard truckId={selectedTruck} day="Monday" />
+          </TabsContent>
+
+          {optimizationResult && (
+            <>
             <TabsContent value="map">
               <Card>
                 <CardHeader>
@@ -538,8 +641,9 @@ function App() {
                 ))}
               </div>
             </TabsContent>
-          </Tabs>
-        )}
+            </>
+          )}
+        </Tabs>
       </div>
     </div>
   );

@@ -3,7 +3,7 @@ from ortools.constraint_solver import pywrapcp
 from typing import List, Dict, Optional
 import asyncio
 import math
-from .models import Customer, VehicleRoute, RoutePoint
+from .models import Customer, VehicleRoute, RoutePoint, RouteOptimizationRequest, RouteOptimizationResponse
 from .google_maps_service import GoogleMapsService
 
 LUFKIN_MONDAY_STOPS = [
@@ -31,8 +31,11 @@ DEPOT_CONSTRAINTS = {
 }
 
 class RouteOptimizer:
-    def __init__(self):
+    def __init__(self, depot_radius: float = 75, max_stops: int = 25, truck_allocations: dict = None):
         self.google_maps = GoogleMapsService()
+        self.depot_radius = depot_radius
+        self.max_stops = max_stops
+        self.truck_allocations = truck_allocations or {"Lufkin": 3, "Leesville": 3, "Lake Charles": 2}
     
     async def optimize_routes(self, customers: List[Customer], depot_addresses: List[str], num_vehicles: int = 8, vehicle_distribution: Optional[Dict[str, int]] = None) -> List[VehicleRoute]:
         """Optimize routes using OR-Tools with Google Maps distance data"""
@@ -62,9 +65,293 @@ class RouteOptimizer:
             depot_routes = await self._optimize_single_depot_routes(
                 depot_customers, depot_address, depot_name, vehicles_for_depot
             )
+            
             all_routes.extend(depot_routes)
         
         return all_routes
+
+    async def optimize_routes_with_sheets_constraints(self, request: RouteOptimizationRequest, sheet_data: dict) -> RouteOptimizationResponse:
+        """Enhanced route optimization with Google Sheets constraints"""
+        try:
+            customers_with_coords = []
+            
+            for customer in request.customers:
+                coords = await self.google_maps.get_coordinates(customer.address)
+                if coords:
+                    customer.latitude = coords['lat']
+                    customer.longitude = coords['lng']
+                    
+                    if not customer.depot:
+                        customer.depot = self._assign_depot_by_radius(coords, request.depot_address)
+                    
+                    customers_with_coords.append(customer)
+            
+            depot_coords = await self.google_maps.get_coordinates(request.depot_address)
+            if not depot_coords:
+                raise ValueError("Could not geocode depot address")
+            
+            depot_customers = self._group_customers_by_depot(customers_with_coords)
+            
+            all_routes = []
+            vehicle_id = 0
+            
+            for depot_name, depot_customers_list in depot_customers.items():
+                num_trucks = self.truck_allocations.get(depot_name, 2)
+                
+                if len(depot_customers_list) > 0:
+                    depot_routes = await self._optimize_depot_routes(
+                        depot_customers_list, 
+                        depot_coords, 
+                        num_trucks,
+                        depot_name
+                    )
+                    
+                    for route in depot_routes:
+                        route.vehicle_id = vehicle_id
+                        route.depot_name = depot_name
+                        route.truck_id = f"{depot_name[0].upper()}{vehicle_id + 1}"
+                        vehicle_id += 1
+                        all_routes.append(route)
+            
+            total_distance = sum(route.total_distance_miles for route in all_routes)
+            total_time = sum(route.total_time_minutes for route in all_routes)
+            
+            return RouteOptimizationResponse(
+                routes=all_routes,
+                total_distance_miles=total_distance,
+                total_time_minutes=total_time,
+                depot_locations=[],
+                status="success"
+            )
+            
+        except Exception as e:
+            import logging
+            logger = logging.getLogger(__name__)
+            logger.error(f"Error in sheets-based route optimization: {e}")
+            return RouteOptimizationResponse(
+                routes=[],
+                total_distance_miles=0,
+                total_time_minutes=0,
+                depot_locations=[],
+                status=f"error: {str(e)}"
+            )
+    
+    def _assign_depot_by_radius(self, customer_coords: dict, depot_address: str) -> str:
+        """Assign customer to depot based on 75-mile radius priority"""
+        depot_locations = {
+            "Lufkin": {"lat": 31.3382, "lng": -94.7291},
+            "Leesville": {"lat": 31.1435, "lng": -93.2607},
+            "Lake Charles": {"lat": 30.2266, "lng": -93.2174}
+        }
+        
+        customer_lat = customer_coords['lat']
+        customer_lng = customer_coords['lng']
+        
+        closest_depot = None
+        min_distance = float('inf')
+        
+        for depot_name, depot_coords in depot_locations.items():
+            distance = self._calculate_distance(
+                customer_lat, customer_lng,
+                depot_coords['lat'], depot_coords['lng']
+            )
+            
+            if distance <= self.depot_radius and distance < min_distance:
+                min_distance = distance
+                closest_depot = depot_name
+        
+        return closest_depot or "Leesville"
+    
+    def _calculate_distance(self, lat1: float, lng1: float, lat2: float, lng2: float) -> float:
+        """Calculate distance between two points in miles"""
+        from math import radians, cos, sin, asin, sqrt
+        
+        lat1, lng1, lat2, lng2 = map(radians, [lat1, lng1, lat2, lng2])
+        
+        dlng = lng2 - lng1
+        dlat = lat2 - lat1
+        a = sin(dlat/2)**2 + cos(lat1) * cos(lat2) * sin(dlng/2)**2
+        c = 2 * asin(sqrt(a))
+        r = 3956
+        
+        return c * r
+    
+    def _group_customers_by_depot(self, customers: List[Customer]) -> dict:
+        """Group customers by their assigned depot"""
+        depot_groups = {}
+        
+        for customer in customers:
+            depot = customer.depot or "Leesville"
+            if depot not in depot_groups:
+                depot_groups[depot] = []
+            depot_groups[depot].append(customer)
+        
+        return depot_groups
+    
+    async def _optimize_depot_routes(self, customers: List[Customer], depot_coords: dict, num_vehicles: int, depot_name: str) -> List[VehicleRoute]:
+        """Optimize routes for a specific depot with TSP-like optimization"""
+        if not customers:
+            return []
+        
+        try:
+            manager = pywrapcp.RoutingIndexManager(
+                len(customers) + 1,
+                num_vehicles,
+                0
+            )
+            routing = pywrapcp.RoutingModel(manager)
+            
+            distance_matrix = await self._create_distance_matrix(customers, depot_coords)
+            
+            def distance_callback(from_index, to_index):
+                from_node = manager.IndexToNode(from_index)
+                to_node = manager.IndexToNode(to_index)
+                return int(distance_matrix[from_node][to_node] * 1000)
+            
+            transit_callback_index = routing.RegisterTransitCallback(distance_callback)
+            routing.SetArcCostForAllVehicles(transit_callback_index)
+            
+            dimension_name = 'Distance'
+            routing.AddDimension(
+                transit_callback_index,
+                0,
+                int(self.depot_radius * 2 * 1000),
+                True,
+                dimension_name
+            )
+            distance_dimension = routing.GetDimensionOrDie(dimension_name)
+            distance_dimension.SetGlobalSpanCostCoefficient(100)
+            
+            for vehicle_id in range(num_vehicles):
+                routing.AddVariableMinimizedByFinalizer(
+                    distance_dimension.CumulVar(routing.Start(vehicle_id))
+                )
+                routing.AddVariableMinimizedByFinalizer(
+                    distance_dimension.CumulVar(routing.End(vehicle_id))
+                )
+            
+            search_parameters = pywrapcp.DefaultRoutingSearchParameters()
+            search_parameters.first_solution_strategy = (
+                routing_enums_pb2.FirstSolutionStrategy.PATH_CHEAPEST_ARC
+            )
+            search_parameters.local_search_metaheuristic = (
+                routing_enums_pb2.LocalSearchMetaheuristic.GUIDED_LOCAL_SEARCH
+            )
+            search_parameters.time_limit.FromSeconds(30)
+            
+            solution = routing.SolveWithParameters(search_parameters)
+            
+            if solution:
+                return self._extract_depot_routes(manager, routing, solution, customers, distance_matrix, depot_name)
+            else:
+                return self._create_simple_routes(customers, num_vehicles, depot_name)
+                
+        except Exception as e:
+            import logging
+            logger = logging.getLogger(__name__)
+            logger.error(f"Error optimizing depot routes for {depot_name}: {e}")
+            return self._create_simple_routes(customers, num_vehicles, depot_name)
+    
+    def _create_simple_routes(self, customers: List[Customer], num_vehicles: int, depot_name: str) -> List[VehicleRoute]:
+        """Create simple routes when optimization fails"""
+        routes = []
+        customers_per_vehicle = len(customers) // num_vehicles + 1
+        
+        for i in range(num_vehicles):
+            start_idx = i * customers_per_vehicle
+            end_idx = min((i + 1) * customers_per_vehicle, len(customers))
+            vehicle_customers = customers[start_idx:end_idx]
+            
+            if vehicle_customers:
+                route_points = []
+                for j, customer in enumerate(vehicle_customers):
+                    route_point = RoutePoint(
+                        customer_id=customer.id,
+                        customer_name=customer.name,
+                        address=customer.address,
+                        latitude=customer.latitude,
+                        longitude=customer.longitude,
+                        order=j + 1
+                    )
+                    route_points.append(route_point)
+                
+                route = VehicleRoute(
+                    vehicle_id=i,
+                    depot_name=depot_name,
+                    route_points=route_points,
+                    total_distance_miles=0.0,
+                    total_time_minutes=480.0,
+                    truck_id=f"{depot_name[0].upper()}{i + 1}",
+                    estimated_hours=8.0
+                )
+                routes.append(route)
+        
+        return routes
+    
+    def _extract_depot_routes(self, manager, routing, solution, customers: List[Customer], distance_matrix, depot_name: str) -> List[VehicleRoute]:
+        """Extract optimized routes from OR-Tools solution"""
+        routes = []
+        
+        for vehicle_id in range(routing.vehicles()):
+            route_points = []
+            index = routing.Start(vehicle_id)
+            route_distance = 0
+            sequence = 1
+            
+            while not routing.IsEnd(index):
+                node_index = manager.IndexToNode(index)
+                if node_index > 0:
+                    customer = customers[node_index - 1]
+                    route_point = RoutePoint(
+                        customer_id=customer.id,
+                        customer_name=customer.name,
+                        address=customer.address,
+                        latitude=customer.latitude,
+                        longitude=customer.longitude,
+                        order=sequence
+                    )
+                    route_points.append(route_point)
+                    sequence += 1
+                
+                previous_index = index
+                index = solution.Value(routing.NextVar(index))
+                if previous_index != index:
+                    route_distance += distance_matrix[manager.IndexToNode(previous_index)][manager.IndexToNode(index)]
+            
+            if route_points:
+                estimated_hours = max(4.0, len(route_points) * 0.5)
+                route = VehicleRoute(
+                    vehicle_id=vehicle_id,
+                    depot_name=depot_name,
+                    route_points=route_points,
+                    total_distance_miles=route_distance,
+                    total_time_minutes=estimated_hours * 60,
+                    truck_id=f"{depot_name[0].upper()}{vehicle_id + 1}",
+                    estimated_hours=estimated_hours
+                )
+                routes.append(route)
+        
+        return routes
+    
+    async def _create_distance_matrix(self, customers: List[Customer], depot_coords: dict) -> List[List[float]]:
+        """Create distance matrix for depot optimization"""
+        locations = [depot_coords] + [{"lat": c.latitude, "lng": c.longitude} for c in customers]
+        matrix = []
+        
+        for i, from_loc in enumerate(locations):
+            row = []
+            for j, to_loc in enumerate(locations):
+                if i == j:
+                    row.append(0.0)
+                else:
+                    distance = self._calculate_distance(
+                        from_loc["lat"], from_loc["lng"],
+                        to_loc["lat"], to_loc["lng"]
+                    )
+                    row.append(distance)
+            matrix.append(row)
+        
+        return matrix
     
     def _calculate_vehicles_per_depot(self, depot_name: str, total_vehicles: int, vehicle_distribution: Optional[Dict[str, int]] = None) -> int:
         if vehicle_distribution and depot_name in vehicle_distribution:
