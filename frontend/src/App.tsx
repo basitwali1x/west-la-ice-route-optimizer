@@ -358,8 +358,8 @@ function App() {
                     </div>
                     <div className="space-y-2">
                       <label className="text-xs font-medium text-gray-700">Lake Charles</label>
-                      <div className="text-xs text-gray-600">Max: 75 miles</div>
-                      <div className="text-xs text-gray-600">Vehicles: {vehicleDistribution['Lake Charles']}</div>
+                      <div className="text-xs text-orange-600">Max: 75 miles, 15 stops per vehicle</div>
+                      <div className="text-xs text-gray-600">Vehicles: {vehicleDistribution['Lake Charles']} (Trucks 2 & 3)</div>
                     </div>
                     <div className="space-y-2">
                       <label className="text-xs font-medium text-gray-700">Lufkin (Monday)</label>

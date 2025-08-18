@@ -1,6 +1,5 @@
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-from dotenv import load_dotenv
 import os
 from typing import List
 
@@ -8,8 +7,6 @@ from .models import Customer, RouteOptimizationRequest, RouteOptimizationRespons
 from .customer_data import load_west_la_ice_customers, get_customer_count
 from .route_optimizer import RouteOptimizer
 from .google_maps_service import GoogleMapsService
-
-load_dotenv()
 
 app = FastAPI(title="West LA Ice Route Optimization API", version="1.0.0")
 
@@ -148,6 +145,58 @@ async def verify_lufkin_route(request: dict):
         
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error verifying Lufkin route: {str(e)}")
+
+@app.post("/verify-lake-charles")
+async def verify_lake_charles_route(request: dict):
+    """Special verification for Lake Charles routes"""
+    try:
+        stops = request.get('stops', [])
+        errors = []
+        
+        for stop in stops:
+            if stop.get('depot') != 'Lake Charles':
+                errors.append(f"Stop {stop['id']} assigned to wrong depot")
+            
+            lc_coords = (30.2266, -93.2174)
+            stop_coords = (stop.get('latitude', 0), stop.get('longitude', 0))
+            distance = route_optimizer._calculate_haversine_distance(lc_coords, stop_coords)
+            
+            if distance > 75:
+                errors.append(f"Stop {stop['id']} is {distance:.1f} miles from depot (max: 75)")
+        
+        if len(stops) > 15:
+            errors.append(f"Route has {len(stops)} stops (max: 15 for Lake Charles)")
+            
+        return {"valid": len(errors) == 0, "errors": errors}
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error verifying Lake Charles route: {str(e)}")
+
+@app.post("/validate-depot-assignments")
+async def validate_depot_assignments(request: dict):
+    """Validate depot assignments for all customers"""
+    try:
+        depot = request.get('depot')
+        if not depot:
+            raise HTTPException(status_code=400, detail="Depot parameter is required")
+            
+        all_customers = load_west_la_ice_customers()
+        depot_customers = [c for c in all_customers if c.depot == depot]
+        
+        violations = []
+        for customer in depot_customers:
+            if depot == "Lake Charles" and customer.truck not in ["Truck 2", "Truck 3"]:
+                violations.append(f"Customer {customer.name} assigned to {customer.truck} instead of Truck 2 or 3")
+        
+        return {
+            "depot": depot,
+            "customer_count": len(depot_customers),
+            "violations": violations,
+            "valid": len(violations) == 0
+        }
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error validating depot assignments: {str(e)}")
 
 @app.post("/reoptimize")
 async def reoptimize_routes(request: dict):

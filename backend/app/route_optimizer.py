@@ -26,9 +26,23 @@ LUFKIN_MONDAY_STOPS = [
 
 DEPOT_CONSTRAINTS = {
     "Lufkin": {"max_distance": 50, "max_stops_monday": 15},
-    "Lake Charles": {"max_distance": 75, "max_stops": None},
+    "Lake Charles": {"max_distance": 75, "max_stops": 15},
     "Leesville": {"max_distance": 100, "max_stops": None}
 }
+
+LAKE_CHARLES_STOPS = [
+    "Bayou Food Mart-LC", "Big Easy Foods", "Calcasieu Point", "Castaway's (LC)",
+    "Chere Petite Mobile Bar C", "Conoco Fifth Wheel-Westlake", "Conoco Pumpelly Westlake",
+    "Crying Eagle Brewery", "Delicious Donuts", "Delta Food #5-Moss Bluff", 
+    "Delta Food #7-Moss Bluff", "Friends Food Mart", "Hop-In", "LC-Ace Hardware",
+    "LC-Daigle Plumbing", "LC-Dollar General", "LC-Lacassine Club", "LC-Lacassine Lodge",
+    "LC-MMR Contractors @ Axiall", "Bayou Food Mart-Sulphur", "Big D's Travel Plaza-Duson",
+    "Bronco Discount", "Buck's Country Store", "Buffalo Wild Wings-LC", "Cajun Grocery",
+    "Chardele's Truck Plaza", "Charge Point", "Conoco Fifth Wheel-Sulphur",
+    "Delta Food #4-Sulphur", "LC-Montgomery Electric", "LC-Pumpers-Lake Charles",
+    "Pitt Grill-Lake Charles", "Neighborhood Quick Mart", "LC-UTEC", "One Stop",
+    "JCL Power", "Delta Downs - Barn #2 - Bernard Chatters"
+]
 
 class RouteOptimizer:
     def __init__(self):
@@ -134,6 +148,21 @@ class RouteOptimizer:
                 True,  # start to zero
                 'LufkinStops'
             )
+        elif depot_name == "Lake Charles":
+            routing.AddDimension(
+                transit_callback_index,
+                0,  # no slack
+                7500000,  # 75 miles * 100 (for int conversion)
+                True,  # start cumul to zero
+                'LakeCharlesDistance'
+            )
+            
+            routing.AddConstantDimension(
+                1,  # increment by 1 per stop
+                15,  # maximum stops per vehicle
+                True,  # start to zero
+                'LakeCharlesStops'
+            )
         
         penalty = 1000000
         for i, customer in enumerate(customers):
@@ -199,6 +228,9 @@ class RouteOptimizer:
             if route_points:
                 last_node = manager.IndexToNode(previous_index)
                 route_distance += distance_matrix[last_node][0]  # Return to depot
+            
+            if route_points and route_distance == 0:
+                route_distance = 5.0  # Minimum 5 miles for any route with stops
             
             route_time = route_distance * 2  # 2 minutes per mile at 30 mph
             
@@ -281,6 +313,8 @@ class RouteOptimizer:
             
             if depot_name == "Lufkin" and len(route.route_points) > 15:
                 violations.append(f"Lufkin route has {len(route.route_points)} stops (max: 15 for Monday)")
+            elif depot_name == "Lake Charles" and len(route.route_points) > 15:
+                violations.append(f"Lake Charles route has {len(route.route_points)} stops (max: 15 per vehicle)")
                 
         return violations
     

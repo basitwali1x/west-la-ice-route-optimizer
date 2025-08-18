@@ -65,6 +65,36 @@ export const api = {
     return response.json();
   },
 
+  async verifyLakeCharlesRoute(stops: any[]): Promise<{ valid: boolean; errors: string[] }> {
+    const response = await fetch(`${API_URL}/verify-lake-charles`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ stops }),
+    });
+    
+    if (!response.ok) {
+      throw new Error('Failed to verify Lake Charles route');
+    }
+    return response.json();
+  },
+
+  async validateDepotAssignments(depot: string): Promise<any> {
+    const response = await fetch(`${API_URL}/validate-depot-assignments`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ depot }),
+    });
+    
+    if (!response.ok) {
+      throw new Error('Failed to validate depot assignments');
+    }
+    return response.json();
+  },
+
   async reoptimizeRoutes(depot: string, day: string = 'Monday', force: boolean = true): Promise<any> {
     const response = await fetch(`${API_URL}/reoptimize`, {
       method: 'POST',
