@@ -25,9 +25,9 @@ LUFKIN_MONDAY_STOPS = [
 ]
 
 DEPOT_CONSTRAINTS = {
-    "Lufkin": {"max_distance": 50, "max_stops_monday": 15},
-    "Lake Charles": {"max_distance": 75, "max_stops": None},
-    "Leesville": {"max_distance": 100, "max_stops": None}
+    "Lufkin": {"max_distance": 50, "max_stops_monday": 15, "max_hours": 10},
+    "Lake Charles": {"max_distance": 75, "max_stops": 15, "max_hours": 10},
+    "Leesville": {"max_distance": 100, "max_stops": 15, "max_hours": 10}
 }
 
 class RouteOptimizer:
@@ -118,6 +118,30 @@ class RouteOptimizer:
         )
         distance_dimension = routing.GetDimensionOrDie(dimension_name)
         distance_dimension.SetGlobalSpanCostCoefficient(100)
+        
+        def time_callback(from_index, to_index):
+            from_node = manager.IndexToNode(from_index)
+            to_node = manager.IndexToNode(to_index)
+            travel_time = int_distance_matrix[from_node][to_node] / 100 / 35  # 35mph average speed
+            service_time = 0.5 if from_node != 0 else 0  # 30 minutes per stop
+            return int((travel_time + service_time) * 3600)  # Convert to seconds
+
+        time_callback_index = routing.RegisterTransitCallback(time_callback)
+        routing.AddDimension(
+            time_callback_index,
+            18000,  # 5 hours slack for breaks/waiting
+            36000,  # 10 hours maximum (DOT compliance)
+            False,  # Don't force start cumul to zero
+            'Time'
+        )
+        time_dimension = routing.GetDimensionOrDie('Time')
+        
+        for i in range(len(all_locations)):
+            index = manager.NodeToIndex(i)
+            time_dimension.CumulVar(index).SetRange(
+                6 * 3600,   # 6AM start
+                20 * 3600   # 8PM end
+            )
         
         if depot_name == "Lufkin":
             routing.AddDimension(
@@ -268,8 +292,9 @@ class RouteOptimizer:
         
         for route in routes:
             depot_name = route.depot_name
+            constraints = DEPOT_CONSTRAINTS.get(depot_name, {})
             
-            max_distance = DEPOT_CONSTRAINTS.get(depot_name, {}).get("max_distance", 100)
+            max_distance = constraints.get("max_distance", 100)
             
             for point in route.route_points:
                 depot_coords = self._get_depot_coordinates(depot_name)
@@ -279,8 +304,17 @@ class RouteOptimizer:
                 if distance > max_distance:
                     violations.append(f"Stop {point.customer_name} is {distance:.1f} miles from {depot_name} depot (max: {max_distance})")
             
-            if depot_name == "Lufkin" and len(route.route_points) > 15:
-                violations.append(f"Lufkin route has {len(route.route_points)} stops (max: 15 for Monday)")
+            max_stops = constraints.get("max_stops", 15)
+            if depot_name == "Lufkin":
+                max_stops = constraints.get("max_stops_monday", 15)
+            
+            if len(route.route_points) > max_stops:
+                violations.append(f"{depot_name} route has {len(route.route_points)} stops (max: {max_stops})")
+            
+            max_hours = constraints.get("max_hours", 10)
+            route_hours = route.total_time_minutes / 60
+            if route_hours > max_hours:
+                violations.append(f"{depot_name} route exceeds {max_hours}h limit: {route_hours:.1f}h")
                 
         return violations
     

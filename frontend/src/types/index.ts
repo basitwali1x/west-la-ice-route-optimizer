@@ -24,6 +24,8 @@ export interface VehicleRoute {
   route_points: RoutePoint[];
   total_distance_miles: number;
   total_time_minutes: number;
+  compliance?: { [key: string]: boolean };
+  violations?: string[];
 }
 
 export interface DepotLocation {
@@ -40,6 +42,7 @@ export interface RouteOptimizationResponse {
   depot_locations: DepotLocation[];
   status: string;
   progress: number;
+  constraint_violations?: string[];
 }
 
 export interface RouteOptimizationRequest {
