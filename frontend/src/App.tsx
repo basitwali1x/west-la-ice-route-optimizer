@@ -514,12 +514,8 @@ function App() {
               onSyncComplete={(data) => {
                 setSheetsData(data);
                 if (data && data.customers) {
-                  let totalCount = 0;
-                  // Count total customers from all depots
-                  Object.values(data.customers as Record<string, any[]>).forEach(depotCustomers => {
-                    totalCount += depotCustomers.length;
-                  });
-                  setCustomerCount(totalCount);
+                  const allCustomers = data.customers['all'] || [];
+                  setCustomerCount(allCustomers.length);
                 }
                 console.log('Sheets data synced:', data);
               }}
@@ -527,12 +523,8 @@ function App() {
                 setOptimizationResult(result.optimization_result);
                 setSheetsData(result.sheet_data);
                 if (result.sheet_data && result.sheet_data.customers) {
-                  let totalCount = 0;
-                  // Count total customers from all depots
-                  Object.values(result.sheet_data.customers as Record<string, any[]>).forEach(depotCustomers => {
-                    totalCount += depotCustomers.length;
-                  });
-                  setCustomerCount(totalCount);
+                  const allCustomers = result.sheet_data.customers['all'] || [];
+                  setCustomerCount(allCustomers.length);
                 }
                 console.log('Optimization complete:', result);
               }}

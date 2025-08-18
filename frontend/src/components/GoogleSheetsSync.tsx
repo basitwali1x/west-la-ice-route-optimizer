@@ -12,7 +12,7 @@ interface GoogleSheetsSyncProps {
 }
 
 export function GoogleSheetsSync({ onSyncComplete, onOptimizeComplete }: GoogleSheetsSyncProps) {
-  const [sheetId, setSheetId] = useState('1priXmXhtP2vVSQ1XUa-Y18-O96OsZ9Qw');
+  const [sheetId, setSheetId] = useState(import.meta.env.VITE_DEFAULT_SHEET_ID || '1et9tMDnHlc1nUQymyeyL2w_GLvzvBJL0XHN1NRzADgc');
   const [isLoading, setIsLoading] = useState(false);
   const [status, setStatus] = useState<'idle' | 'syncing' | 'optimizing' | 'success' | 'error'>('idle');
   const [message, setMessage] = useState('');
@@ -130,7 +130,7 @@ export function GoogleSheetsSync({ onSyncComplete, onOptimizeComplete }: GoogleS
           <Input
             id="sheet-id"
             type="text"
-            placeholder="Enter Google Sheets ID (e.g., 1priXmXhtP2vVSQ1XUa-Y18-O96OsZ9Qw)"
+            placeholder="Enter Google Sheets ID (e.g., 1et9tMDnHlc1nUQymyeyL2w_GLvzvBJL0XHN1NRzADgc)"
             value={sheetId}
             onChange={(e) => setSheetId(e.target.value)}
             disabled={isLoading}
@@ -195,8 +195,8 @@ export function GoogleSheetsSync({ onSyncComplete, onOptimizeComplete }: GoogleS
         )}
 
         <div className="text-xs text-gray-400 space-y-1">
-          <p><strong>Sync Data:</strong> Pull customer lists from depot tabs (jasper, leesville, lufkin, all)</p>
-          <p><strong>Optimize Routes:</strong> Run OR-Tools optimization with 75-mile radius constraints and balanced truck assignments</p>
+          <p><strong>Sync Data:</strong> Pull customer lists from depot tabs (lufkin, leesville, lake charles, all)</p>
+          <p><strong>Optimize Routes:</strong> Run OR-Tools optimization with 100-mile radius constraints and balanced truck assignments</p>
         </div>
       </CardContent>
     </Card>
