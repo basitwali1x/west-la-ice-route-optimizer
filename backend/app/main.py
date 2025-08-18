@@ -6,7 +6,7 @@ from typing import List
 
 from .models import Customer, RouteOptimizationRequest, RouteOptimizationResponse, VehicleRoute, DepotLocation, RouteValidationRequest, RouteValidationResponse
 from .customer_data import load_west_la_ice_customers, get_customer_count
-from .route_optimizer import RouteOptimizer
+from .route_optimizer import RouteOptimizer, DEPOT_CONSTRAINTS
 from .google_maps_service import GoogleMapsService
 
 load_dotenv()
@@ -60,6 +60,17 @@ async def optimize_routes(request: RouteOptimizationRequest):
             vehicle_distribution=request.vehicle_distribution
         )
         
+        all_violations = route_optimizer.enforce_depot_isolation(routes)
+        
+        for route in routes:
+            route_violations = [v for v in all_violations if route.depot_name in v]
+            route.violations = route_violations
+            route.compliance = {
+                "DOT_hours": route.total_time_minutes / 60 <= 10,
+                "max_stops": len(route.route_points) <= DEPOT_CONSTRAINTS.get(route.depot_name, {}).get("max_stops", 15),
+                "distance_limit": not any("miles from" in v for v in route_violations)
+            }
+        
         total_distance = sum(route.total_distance_miles for route in routes)
         total_time = sum(route.total_time_minutes for route in routes)
         
@@ -82,7 +93,8 @@ async def optimize_routes(request: RouteOptimizationRequest):
             total_time_minutes=round(total_time, 2),
             depot_locations=depot_locations,
             status="complete",
-            progress=100
+            progress=100,
+            constraint_violations=all_violations
         )
         
     except Exception as e:

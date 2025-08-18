@@ -31,6 +31,8 @@ class VehicleRoute(BaseModel):
     route_points: List[RoutePoint]
     total_distance_miles: float
     total_time_minutes: float
+    compliance: Optional[Dict[str, bool]] = None
+    violations: Optional[List[str]] = None
 
 class DepotLocation(BaseModel):
     name: str
@@ -45,6 +47,7 @@ class RouteOptimizationResponse(BaseModel):
     depot_locations: List[DepotLocation]
     status: str = "complete"
     progress: int = 100
+    constraint_violations: Optional[List[str]] = None
 
 class DepotConstraint(BaseModel):
     depot_name: str

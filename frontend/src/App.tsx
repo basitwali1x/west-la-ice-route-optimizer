@@ -353,18 +353,21 @@ function App() {
                   <div className="grid grid-cols-3 gap-4">
                     <div className="space-y-2">
                       <label className="text-xs font-medium text-gray-700">Leesville</label>
-                      <div className="text-xs text-gray-600">Max: 100 miles</div>
+                      <div className="text-xs text-gray-600">Max: 100 miles, 15 stops, 10 hours</div>
                       <div className="text-xs text-gray-600">Vehicles: {vehicleDistribution.Leesville}</div>
+                      <div className="text-xs text-blue-600">Service time: 30min/stop</div>
                     </div>
                     <div className="space-y-2">
                       <label className="text-xs font-medium text-gray-700">Lake Charles</label>
-                      <div className="text-xs text-gray-600">Max: 75 miles</div>
+                      <div className="text-xs text-gray-600">Max: 75 miles, 15 stops, 10 hours</div>
                       <div className="text-xs text-gray-600">Vehicles: {vehicleDistribution['Lake Charles']}</div>
+                      <div className="text-xs text-blue-600">Service time: 30min/stop</div>
                     </div>
                     <div className="space-y-2">
                       <label className="text-xs font-medium text-gray-700">Lufkin (Monday)</label>
-                      <div className="text-xs text-red-600">Max: 50 miles, 15 stops</div>
+                      <div className="text-xs text-red-600">Max: 50 miles, 15 stops, 10 hours</div>
                       <div className="text-xs text-gray-600">Vehicles: {vehicleDistribution.Lufkin} (Truck 1 only)</div>
+                      <div className="text-xs text-blue-600">Service time: 30min/stop</div>
                     </div>
                   </div>
                   
@@ -494,12 +497,28 @@ function App() {
                             {route.total_distance_miles} mi
                           </Badge>
                           <Badge variant="outline">
-                            {Math.round(route.total_time_minutes)} min
+                            {Math.round(route.total_time_minutes / 60)}h {Math.round(route.total_time_minutes % 60)}m
                           </Badge>
+                          {route.compliance?.DOT_hours === false && (
+                            <Badge variant="destructive">⚠️ Exceeds 10h</Badge>
+                          )}
+                          {route.violations && route.violations.length > 0 && (
+                            <Badge variant="destructive">{route.violations.length} violations</Badge>
+                          )}
                         </div>
                       </div>
                     </CardHeader>
                     <CardContent>
+                      {route.violations && route.violations.length > 0 && (
+                        <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded">
+                          <h4 className="text-sm font-medium text-red-800 mb-2">Constraint Violations:</h4>
+                          <ul className="text-sm text-red-700 space-y-1">
+                            {route.violations.map((violation, idx) => (
+                              <li key={idx}>• {violation}</li>
+                            ))}
+                          </ul>
+                        </div>
+                      )}
                       <div className="space-y-2">
                         {route.route_points.map((point, index) => (
                           <div key={point.customer_id} className="flex items-center space-x-3 p-2 bg-gray-50 rounded">
