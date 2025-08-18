@@ -64,6 +64,30 @@ function App() {
   const loadInitialData = async () => {
     try {
       setIsLoading(true);
+      
+      const defaultSheetId = '1et9tMDnHlc1nUQymyeyL2w_GLvzvBJL0XHN1NRzADgc';
+      try {
+        const sheetsSync = {
+          sheet_id: defaultSheetId,
+          status: 'syncing'
+        };
+        
+        const sheetsResult = await api.syncFromSheets(sheetsSync);
+        
+        if (sheetsResult.data && sheetsResult.data.customers && sheetsResult.data.customers['all']) {
+          const allCustomers = sheetsResult.data.customers['all'];
+          setCustomerCount(allCustomers.length);
+          setSheetsData(sheetsResult.data);
+          
+          const customersData = await api.getCustomers();
+          setCustomers(customersData);
+          setError(null);
+          return; // Successfully loaded from Google Sheets
+        }
+      } catch (sheetsError) {
+        console.warn('Google Sheets sync failed, falling back to Excel data:', sheetsError);
+      }
+      
       const [customersData, countData] = await Promise.all([
         api.getCustomers(),
         api.getCustomerCount()
