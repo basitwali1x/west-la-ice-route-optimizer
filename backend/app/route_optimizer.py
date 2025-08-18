@@ -1,6 +1,6 @@
 from ortools.constraint_solver import routing_enums_pb2
 from ortools.constraint_solver import pywrapcp
-from typing import List, Dict
+from typing import List, Dict, Optional
 import asyncio
 from .models import Customer, VehicleRoute, RoutePoint
 from .google_maps_service import GoogleMapsService
@@ -9,7 +9,7 @@ class RouteOptimizer:
     def __init__(self):
         self.google_maps = GoogleMapsService()
     
-    async def optimize_routes(self, customers: List[Customer], depot_addresses: List[str], num_vehicles: int = 8) -> List[VehicleRoute]:
+    async def optimize_routes(self, customers: List[Customer], depot_addresses: List[str], num_vehicles: int = 8, vehicle_distribution: Optional[Dict[str, int]] = None) -> List[VehicleRoute]:
         """Optimize routes using OR-Tools with Google Maps distance data"""
         
         depot_mapping = {
@@ -32,7 +32,7 @@ class RouteOptimizer:
                 continue
                 
             depot_address = depot_mapping[depot_name]
-            vehicles_for_depot = self._calculate_vehicles_per_depot(depot_name, num_vehicles)
+            vehicles_for_depot = self._calculate_vehicles_per_depot(depot_name, num_vehicles, vehicle_distribution)
             
             depot_routes = await self._optimize_single_depot_routes(
                 depot_customers, depot_address, depot_name, vehicles_for_depot
@@ -41,13 +41,16 @@ class RouteOptimizer:
         
         return all_routes
     
-    def _calculate_vehicles_per_depot(self, depot_name: str, total_vehicles: int) -> int:
+    def _calculate_vehicles_per_depot(self, depot_name: str, total_vehicles: int, vehicle_distribution: Optional[Dict[str, int]] = None) -> int:
+        if vehicle_distribution and depot_name in vehicle_distribution:
+            return vehicle_distribution[depot_name]
+        
         if depot_name == "Leesville":
-            return 3
+            return 5
         elif depot_name == "Lake Charles":
-            return 3
-        elif depot_name == "Lufkin":
             return 2
+        elif depot_name == "Lufkin":
+            return 1
         else:
             return 1
     

@@ -56,7 +56,8 @@ async def optimize_routes(request: RouteOptimizationRequest):
         routes = await route_optimizer.optimize_routes(
             customers=request.customers,
             depot_addresses=depot_addresses,
-            num_vehicles=request.num_vehicles
+            num_vehicles=request.num_vehicles,
+            vehicle_distribution=request.vehicle_distribution
         )
         
         total_distance = sum(route.total_distance_miles for route in routes)

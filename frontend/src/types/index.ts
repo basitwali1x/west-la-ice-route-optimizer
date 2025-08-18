@@ -46,4 +46,5 @@ export interface RouteOptimizationRequest {
   customers: Customer[];
   num_vehicles: number;
   depot_addresses: string[];
+  vehicle_distribution?: { [key: string]: number };
 }

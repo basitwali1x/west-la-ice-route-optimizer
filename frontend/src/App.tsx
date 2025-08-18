@@ -14,6 +14,11 @@ function App() {
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [customerCount, setCustomerCount] = useState(0);
   const [numVehicles, setNumVehicles] = useState(8);
+  const [vehicleDistribution, setVehicleDistribution] = useState({
+    Leesville: 5,
+    'Lake Charles': 2,
+    Lufkin: 1
+  });
   const [isOptimizing, setIsOptimizing] = useState(false);
   const [optimizationResult, setOptimizationResult] = useState<RouteOptimizationResponse | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -109,7 +114,8 @@ function App() {
           "1707 Smart Street, Leesville, LA 71446",
           "220 Bunker Road, Lake Charles, LA 70615", 
           "1107 Weiner St, Lufkin, TX 75904"
-        ]
+        ],
+        vehicle_distribution: vehicleDistribution
       });
 
       console.log('Optimization result received:', result);
@@ -276,36 +282,66 @@ function App() {
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="flex items-center space-x-4">
-              <div className="flex-1">
-                <label className="text-sm font-medium mb-2 block">
-                  Number of Vehicles
-                </label>
-                <Select 
-                  value={numVehicles.toString()} 
-                  onValueChange={(value) => setNumVehicles(parseInt(value))}
-                >
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {[1, 2, 3, 4, 5, 6, 7, 8].map(num => (
-                      <SelectItem key={num} value={num.toString()}>
-                        {num} {num === 1 ? 'Vehicle' : 'Vehicles'}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+            <div className="space-y-4">
+              <div className="flex items-center space-x-4">
+                <div className="flex-1">
+                  <label className="text-sm font-medium mb-2 block">
+                    Total Vehicles: {Object.values(vehicleDistribution).reduce((sum, count) => sum + count, 0)}
+                  </label>
+                  <div className="text-xs text-gray-500">
+                    Distributed across all depots
+                  </div>
+                </div>
+                
+                <div className="flex-1">
+                  <label className="text-sm font-medium mb-2 block">
+                    Depot Locations
+                  </label>
+                  <div className="text-sm text-gray-600 p-2 bg-gray-100 rounded space-y-1">
+                    <div>Leesville: 1707 Smart Street, Leesville, LA 71446</div>
+                    <div>Lake Charles: 220 Bunker Road, Lake Charles, LA 70615</div>
+                    <div>Lufkin: 1107 Weiner St, Lufkin, TX 75904</div>
+                  </div>
+                </div>
               </div>
-              
-              <div className="flex-1">
-                <label className="text-sm font-medium mb-2 block">
-                  Depot Locations
+
+              <div>
+                <label className="text-sm font-medium mb-3 block">
+                  Vehicle Distribution by Depot
                 </label>
-                <div className="text-sm text-gray-600 p-2 bg-gray-100 rounded space-y-1">
-                  <div>Leesville: 1707 Smart Street, Leesville, LA 71446</div>
-                  <div>Lake Charles: 220 Bunker Road, Lake Charles, LA 70615</div>
-                  <div>Lufkin: 1107 Weiner St, Lufkin, TX 75904</div>
+                <div className="grid grid-cols-3 gap-4">
+                  {Object.entries(vehicleDistribution).map(([depot, count]) => (
+                    <div key={depot} className="space-y-2">
+                      <label className="text-xs font-medium text-gray-700 block">
+                        {depot}
+                      </label>
+                      <Select 
+                        value={count.toString()} 
+                        onValueChange={(value) => {
+                          const newCount = parseInt(value);
+                          setVehicleDistribution(prev => ({
+                            ...prev,
+                            [depot]: newCount
+                          }));
+                          setNumVehicles(Object.values({
+                            ...vehicleDistribution,
+                            [depot]: newCount
+                          }).reduce((sum, c) => sum + c, 0));
+                        }}
+                      >
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {[0, 1, 2, 3, 4, 5, 6, 7, 8].map(num => (
+                            <SelectItem key={num} value={num.toString()}>
+                              {num} {num === 1 ? 'Vehicle' : 'Vehicles'}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  ))}
                 </div>
               </div>
             </div>

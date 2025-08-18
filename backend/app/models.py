@@ -1,5 +1,5 @@
 from pydantic import BaseModel
-from typing import List, Optional
+from typing import List, Optional, Dict
 
 class Customer(BaseModel):
     id: int
@@ -15,6 +15,7 @@ class RouteOptimizationRequest(BaseModel):
     customers: List[Customer]
     num_vehicles: int = 8
     depot_addresses: List[str]
+    vehicle_distribution: Optional[Dict[str, int]] = None
 
 class RoutePoint(BaseModel):
     customer_id: int
