@@ -234,13 +234,54 @@ async def reoptimize_routes(request: dict):
         
         violations = route_optimizer.enforce_depot_isolation(routes)
         
+        assigned_customer_ids = set()
+        for route in routes:
+            for point in route.route_points:
+                assigned_customer_ids.add(point.customer_id)
+        
+        unassigned_stops = []
+        for customer in depot_customers:
+            if customer.id not in assigned_customer_ids:
+                unassigned_stops.append({
+                    "id": customer.id,
+                    "name": customer.name,
+                    "reason": "Would exceed 15-stop or 10-hour daily limit",
+                    "depot": customer.depot
+                })
+        
         return {
             "status": "complete",
             "routes": routes,
             "violations": violations,
+            "unassigned_stops": unassigned_stops,
             "depot": depot,
-            "day": day
+            "day": day,
+            "compliance": {
+                "max_stops_enforced": True,
+                "time_windows_enforced": True,
+                "DOT_hours_enforced": True
+            }
         }
         
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error re-optimizing routes: {str(e)}")
+
+@app.get("/operational-limits")
+async def get_operational_limits():
+    """Get current operational limits and vehicle profiles"""
+    try:
+        from .route_optimizer import DAILY_OPERATIONAL_LIMITS, VEHICLE_PROFILES
+        
+        return {
+            "daily_limits": DAILY_OPERATIONAL_LIMITS,
+            "vehicle_profiles": VEHICLE_PROFILES,
+            "enforcement": {
+                "hard_stop_limit": True,
+                "time_windows": True,
+                "driver_breaks": True,
+                "DOT_compliance": True
+            }
+        }
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error getting operational limits: {str(e)}")

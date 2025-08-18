@@ -24,10 +24,54 @@ LUFKIN_MONDAY_STOPS = [
     "Roy O Martin OSB"
 ]
 
+DAILY_OPERATIONAL_LIMITS = {
+    'max_stops_per_vehicle': 15,  # Absolute hard cap
+    'max_route_hours': 10,       # DOT compliance (including 2 buffer hours)
+    'avg_stop_time': 0.5,        # Hours per stop (loading/unloading)
+    'max_distance': 300,         # Miles per vehicle
+    'time_windows': {
+        'start': '06:00',
+        'end': '20:00'
+    }
+}
+
+VEHICLE_PROFILES = {
+    "Truck 1": {
+        "daily_max_stops": 15,
+        "max_hours": 10,
+        "speed_factor": 1.0  # 35mph base
+    },
+    "Truck 2": {
+        "daily_max_stops": 15,
+        "max_hours": 10,
+        "speed_factor": 0.9  # Urban traffic
+    },
+    "Truck 3": {
+        "daily_max_stops": 15,
+        "max_hours": 10,
+        "speed_factor": 0.9  # Urban traffic
+    },
+    "Truck 4": {
+        "daily_max_stops": 15,
+        "max_hours": 10,
+        "speed_factor": 1.0
+    },
+    "Truck 5": {
+        "daily_max_stops": 15,
+        "max_hours": 10,
+        "speed_factor": 1.0
+    },
+    "Truck 6": {
+        "daily_max_stops": 15,
+        "max_hours": 10,
+        "speed_factor": 1.0
+    }
+}
+
 DEPOT_CONSTRAINTS = {
-    "Lufkin": {"max_distance": 50, "max_stops_monday": 15},
+    "Lufkin": {"max_distance": 50, "max_stops": 15, "max_stops_monday": 15},
     "Lake Charles": {"max_distance": 75, "max_stops": 15},
-    "Leesville": {"max_distance": 100, "max_stops": None}
+    "Leesville": {"max_distance": 100, "max_stops": 15}
 }
 
 LAKE_CHARLES_STOPS = [
@@ -133,36 +177,58 @@ class RouteOptimizer:
         distance_dimension = routing.GetDimensionOrDie(dimension_name)
         distance_dimension.SetGlobalSpanCostCoefficient(100)
         
-        if depot_name == "Lufkin":
-            routing.AddDimension(
-                transit_callback_index,
-                0,  # no slack
-                5000000,  # 50 miles * 100 (for int conversion)
-                True,  # start cumul to zero
-                'LufkinDistance'
+        routing.AddConstantDimension(
+            1,  # Each stop counts as 1
+            DAILY_OPERATIONAL_LIMITS['max_stops_per_vehicle'],
+            True,  # Start at 0
+            'Stops'
+        )
+
+        def time_callback(from_index, to_index):
+            from_node = manager.IndexToNode(from_index)
+            to_node = manager.IndexToNode(to_index)
+            travel_time = distance_matrix[from_node][to_node] / 35  # 35mph avg speed
+            service_time = DAILY_OPERATIONAL_LIMITS['avg_stop_time'] if from_node != 0 else 0
+            return int((travel_time + service_time) * 3600)  # Convert to seconds
+
+        time_callback_index = routing.RegisterTransitCallback(time_callback)
+        routing.AddDimension(
+            time_callback_index,
+            21600,  # 6hr slack (start window)
+            DAILY_OPERATIONAL_LIMITS['max_route_hours'] * 3600,
+            False,
+            'Time'
+        )
+        time_dimension = routing.GetDimensionOrDie('Time')
+        
+        for stop_idx in range(len(customers) + 1):  # +1 for depot
+            index = manager.NodeToIndex(stop_idx)
+            time_dimension.CumulVar(index).SetRange(
+                6 * 3600,  # Earliest 6AM
+                20 * 3600  # Latest 8PM
             )
-            
-            routing.AddConstantDimension(
-                1,  # increment by 1 per stop
-                15,  # maximum stops
-                True,  # start to zero
-                'LufkinStops'
+        
+        for vehicle_id in range(num_vehicles):
+            time_dimension.SetBreakIntervalsOfVehicle(
+                [routing.solver().FixedDurationIntervalVar(
+                    4 * 3600,  # Start after 4 hours
+                    4 * 3600 + 1800,  # End after 4.5 hours (30min break)
+                    1800,  # 30 minute duration
+                    False,  # Not optional
+                    f'Break_vehicle_{vehicle_id}'
+                )],
+                vehicle_id,
+                [0]  # Can take break at any customer location
             )
-        elif depot_name == "Lake Charles":
-            routing.AddDimension(
-                transit_callback_index,
-                0,  # no slack
-                7500000,  # 75 miles * 100 (for int conversion)
-                True,  # start cumul to zero
-                'LakeCharlesDistance'
-            )
-            
-            routing.AddConstantDimension(
-                1,  # increment by 1 per stop
-                15,  # maximum stops per vehicle
-                True,  # start to zero
-                'LakeCharlesStops'
-            )
+
+        max_distance = DEPOT_CONSTRAINTS.get(depot_name, {}).get("max_distance", 100)
+        routing.AddDimension(
+            transit_callback_index,
+            0,  # no slack
+            max_distance * 100000,  # Convert miles to routing units
+            True,  # start cumul to zero
+            'Distance'
+        )
         
         penalty = 1000000
         for i, customer in enumerate(customers):
@@ -247,20 +313,22 @@ class RouteOptimizer:
         return routes
     
     def _create_fallback_routes(self, customers, geocoded_locations, num_vehicles, depot_name):
-        """Create fallback routes using simple round-robin assignment"""
+        """Create fallback routes using simple round-robin assignment with stop limits"""
         routes = []
         
-        customers_per_vehicle = len(customers) // num_vehicles
+        max_stops = DAILY_OPERATIONAL_LIMITS['max_stops_per_vehicle']
+        
+        customers_per_vehicle = min(len(customers) // num_vehicles, max_stops)
         remainder = len(customers) % num_vehicles
         
         start_idx = 0
         for vehicle_id in range(num_vehicles):
-            vehicle_customers = customers_per_vehicle + (1 if vehicle_id < remainder else 0)
+            vehicle_customers = min(customers_per_vehicle + (1 if vehicle_id < remainder else 0), max_stops)
             
-            if vehicle_customers == 0:
+            if vehicle_customers == 0 or start_idx >= len(customers):
                 continue
                 
-            end_idx = start_idx + vehicle_customers
+            end_idx = min(start_idx + vehicle_customers, len(customers))
             vehicle_customer_list = customers[start_idx:end_idx]
             
             route_points = []
@@ -311,10 +379,12 @@ class RouteOptimizer:
                 if distance > max_distance:
                     violations.append(f"Stop {point.customer_name} is {distance:.1f} miles from {depot_name} depot (max: {max_distance})")
             
-            if depot_name == "Lufkin" and len(route.route_points) > 15:
-                violations.append(f"Lufkin route has {len(route.route_points)} stops (max: 15 for Monday)")
-            elif depot_name == "Lake Charles" and len(route.route_points) > 15:
-                violations.append(f"Lake Charles route has {len(route.route_points)} stops (max: 15 per vehicle)")
+            max_stops = DAILY_OPERATIONAL_LIMITS['max_stops_per_vehicle']
+            if len(route.route_points) > max_stops:
+                violations.append(f"{depot_name} route has {len(route.route_points)} stops (max: {max_stops} per vehicle)")
+            
+            if route.total_time_minutes > DAILY_OPERATIONAL_LIMITS['max_route_hours'] * 60:
+                violations.append(f"{depot_name} route exceeds {DAILY_OPERATIONAL_LIMITS['max_route_hours']} hour limit: {route.total_time_minutes/60:.1f} hours")
                 
         return violations
     
