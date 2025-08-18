@@ -513,11 +513,27 @@ function App() {
             <GoogleSheetsSync 
               onSyncComplete={(data) => {
                 setSheetsData(data);
+                if (data && data.customers) {
+                  let totalCount = 0;
+                  // Count total customers from all depots
+                  Object.values(data.customers as Record<string, any[]>).forEach(depotCustomers => {
+                    totalCount += depotCustomers.length;
+                  });
+                  setCustomerCount(totalCount);
+                }
                 console.log('Sheets data synced:', data);
               }}
               onOptimizeComplete={(result) => {
                 setOptimizationResult(result.optimization_result);
                 setSheetsData(result.sheet_data);
+                if (result.sheet_data && result.sheet_data.customers) {
+                  let totalCount = 0;
+                  // Count total customers from all depots
+                  Object.values(result.sheet_data.customers as Record<string, any[]>).forEach(depotCustomers => {
+                    totalCount += depotCustomers.length;
+                  });
+                  setCustomerCount(totalCount);
+                }
                 console.log('Optimization complete:', result);
               }}
             />
