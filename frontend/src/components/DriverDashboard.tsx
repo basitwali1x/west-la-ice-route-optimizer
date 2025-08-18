@@ -1,14 +1,12 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
 import { Button } from './ui/button';
 import { Badge } from './ui/badge';
 import { Alert, AlertDescription } from './ui/alert';
 import { 
-  MapPin, 
   Clock, 
   Truck, 
   Navigation, 
-  Phone, 
   AlertTriangle,
   CheckCircle,
   Loader2,
