@@ -1,0 +1,8 @@
+# Google Sheets API credentials and environment variables
+credentials.json
+.env
+
+# Python cache files
+__pycache__/
+*.pyc
+*.pyo

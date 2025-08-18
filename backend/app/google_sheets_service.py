@@ -1,5 +1,5 @@
 import gspread
-from oauth2client.service_account import ServiceAccountCredentials
+from google.oauth2.service_account import Credentials
 from typing import List, Dict, Any, Optional
 import os
 import json
@@ -19,17 +19,19 @@ class GoogleSheetsService:
     def _authenticate(self):
         if self.client is None:
             try:
-                scope = ['https://spreadsheets.google.com/feeds',
-                        'https://www.googleapis.com/auth/drive']
+                scopes = [
+                    'https://www.googleapis.com/auth/spreadsheets',
+                    'https://www.googleapis.com/auth/drive'
+                ]
                 
                 if os.path.exists(self.credentials_path):
-                    creds = ServiceAccountCredentials.from_json_keyfile_name(
-                        self.credentials_path, scope)
+                    credentials = Credentials.from_service_account_file(
+                        self.credentials_path, scopes=scopes)
                 else:
                     logger.warning(f"Credentials file not found at {self.credentials_path}")
                     return None
                     
-                self.client = gspread.authorize(creds)
+                self.client = gspread.authorize(credentials)
                 logger.info("Successfully authenticated with Google Sheets API")
             except Exception as e:
                 logger.error(f"Failed to authenticate with Google Sheets: {e}")
