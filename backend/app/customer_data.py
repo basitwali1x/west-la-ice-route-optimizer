@@ -2,7 +2,64 @@ import pandas as pd
 from typing import List
 from .models import Customer
 import os
+import math
 from .google_sheets_service import GoogleSheetsService
+from .google_maps_service import GoogleMapsService
+
+DEPOT_CONSTRAINTS = {
+    "Lufkin": {"max_distance": 50, "coordinates": (31.3382, -94.7291)},
+    "Lake Charles": {"max_distance": 75, "coordinates": (30.2266, -93.2174)},
+    "Leesville": {"max_distance": 100, "coordinates": (31.1435, -93.2607)}
+}
+
+def _calculate_haversine_distance(coord1: tuple, coord2: tuple) -> float:
+    """Calculate distance between two coordinates in miles"""
+    lat1, lng1 = coord1
+    lat2, lng2 = coord2
+    
+    dlat = math.radians(lat2 - lat1)
+    dlng = math.radians(lng2 - lng1)
+    a = (math.sin(dlat/2) * math.sin(dlat/2) + 
+         math.cos(math.radians(lat1)) * math.cos(math.radians(lat2)) * 
+         math.sin(dlng/2) * math.sin(dlng/2))
+    c = 2 * math.atan2(math.sqrt(a), math.sqrt(1-a))
+    return 3959 * c
+
+def assign_depot_by_distance(address: str) -> str:
+    """Assign depot based on distance constraints"""
+    try:
+        maps_service = GoogleMapsService()
+        coords = maps_service._generate_realistic_coordinates(address)
+        if not coords:
+            return 'Leesville'
+        
+        customer_coords = coords
+        
+        best_depot = None
+        min_distance = float('inf')
+        
+        for depot_name, constraints in DEPOT_CONSTRAINTS.items():
+            depot_coords = constraints['coordinates']
+            distance = _calculate_haversine_distance(depot_coords, customer_coords)
+            
+            if distance <= constraints['max_distance'] and distance < min_distance:
+                best_depot = depot_name
+                min_distance = distance
+        
+        if not best_depot:
+            for depot_name, constraints in DEPOT_CONSTRAINTS.items():
+                depot_coords = constraints['coordinates']
+                distance = _calculate_haversine_distance(depot_coords, customer_coords)
+                
+                if distance < min_distance:
+                    best_depot = depot_name
+                    min_distance = distance
+        
+        return best_depot or 'Leesville'
+        
+    except Exception as e:
+        print(f'Error geocoding address {address}: {e}')
+        return 'Leesville'
 
 def load_west_la_ice_customers() -> List[Customer]:
     """
@@ -20,11 +77,13 @@ def load_west_la_ice_customers() -> List[Customer]:
                 for depot, depot_customers in sheet_data["customers"].items():
                     for i, customer_data in enumerate(depot_customers):
                         if customer_data.get("name") and customer_data.get("address"):
+                            assigned_depot = assign_depot_by_distance(customer_data["address"])
+                            
                             customer = Customer(
-                                id=f"{depot}_{i}",
+                                id=f"{assigned_depot}_{i}",
                                 name=customer_data["name"],
                                 address=customer_data["address"],
-                                depot=depot,
+                                depot=assigned_depot,
                                 truck=f"Truck {(i % 8) + 1}",
                                 day="Monday",
                                 phone=customer_data.get("phone", "")
@@ -66,19 +125,9 @@ def load_west_la_ice_customers() -> List[Customer]:
                         if potential_depot in depot_mapping:
                             depot = potential_depot
                         else:
-                            if 'Lufkin' in address or 'TX 759' in address:
-                                depot = 'Lufkin'
-                            elif 'Lake Charles' in address or 'LA 706' in address:
-                                depot = 'Lake Charles'
-                            else:
-                                depot = 'Leesville'
+                            depot = assign_depot_by_distance(address)
                     else:
-                        if 'Lufkin' in address or 'TX 759' in address:
-                            depot = 'Lufkin'
-                        elif 'Lake Charles' in address or 'LA 706' in address:
-                            depot = 'Lake Charles'
-                        else:
-                            depot = 'Leesville'
+                        depot = assign_depot_by_distance(address)
                     
                     customer = Customer(
                         id=len(customers) + 1,
