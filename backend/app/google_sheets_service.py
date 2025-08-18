@@ -67,18 +67,20 @@ class GoogleSheetsService:
                 "last_updated": datetime.now().isoformat()
             }
             
-            for worksheet in sheet.worksheets():
-                worksheet_name = worksheet.title.lower()
+            try:
+                all_worksheet = sheet.worksheet('all')
+                customers = self._parse_customer_data(all_worksheet)
+                result["customers"]["all"] = customers
+                logger.info(f"Loaded {len(customers)} customers from 'all' tab")
+            except Exception as e:
+                logger.error(f"Error loading 'all' worksheet: {e}")
                 
-                if worksheet_name in ['jasper', 'leesville', 'lufkin', 'all']:
-                    customers = self._parse_customer_data(worksheet)
-                    result["customers"][worksheet_name] = customers
-                elif worksheet_name == 'route assignment':
-                    route_assignments = self._parse_route_assignments(worksheet)
-                    result["route_assignments"] = route_assignments
-                elif 'day' in worksheet_name:
-                    day_routes = self._parse_day_routes(worksheet)
-                    result[worksheet_name] = day_routes
+            try:
+                route_worksheet = sheet.worksheet('Route Assignment')
+                route_assignments = self._parse_route_assignments(route_worksheet)
+                result["route_assignments"] = route_assignments
+            except Exception as e:
+                logger.info(f"No 'Route Assignment' worksheet found: {e}")
             
             self._set_cache(cache_key, result)
             logger.info(f"Successfully synced data from sheet {sheet_id}")
