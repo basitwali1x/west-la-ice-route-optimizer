@@ -344,6 +344,41 @@ function App() {
                   ))}
                 </div>
               </div>
+
+              <div>
+                <label className="text-sm font-medium mb-3 block">
+                  Depot Constraints & Isolation
+                </label>
+                <div className="grid grid-cols-1 gap-4 p-4 bg-gray-50 rounded-lg">
+                  <div className="grid grid-cols-3 gap-4">
+                    <div className="space-y-2">
+                      <label className="text-xs font-medium text-gray-700">Leesville</label>
+                      <div className="text-xs text-gray-600">Max: 100 miles</div>
+                      <div className="text-xs text-gray-600">Vehicles: {vehicleDistribution.Leesville}</div>
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-xs font-medium text-gray-700">Lake Charles</label>
+                      <div className="text-xs text-gray-600">Max: 75 miles</div>
+                      <div className="text-xs text-gray-600">Vehicles: {vehicleDistribution['Lake Charles']}</div>
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-xs font-medium text-gray-700">Lufkin (Monday)</label>
+                      <div className="text-xs text-red-600">Max: 50 miles, 15 stops</div>
+                      <div className="text-xs text-gray-600">Vehicles: {vehicleDistribution.Lufkin} (Truck 1 only)</div>
+                    </div>
+                  </div>
+                  
+                  <div className="border-t pt-3">
+                    <div className="flex items-center justify-between text-sm">
+                      <span className="font-medium">Cross-Depot Penalty:</span>
+                      <span className="text-orange-600">1.5x distance multiplier</span>
+                    </div>
+                    <div className="text-xs text-gray-500 mt-1">
+                      Routes between different depots are penalized to enforce isolation
+                    </div>
+                  </div>
+                </div>
+              </div>
             </div>
 
             {isOptimizing && (

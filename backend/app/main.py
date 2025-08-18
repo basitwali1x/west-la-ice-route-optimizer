@@ -4,7 +4,7 @@ from dotenv import load_dotenv
 import os
 from typing import List
 
-from .models import Customer, RouteOptimizationRequest, RouteOptimizationResponse, VehicleRoute, DepotLocation
+from .models import Customer, RouteOptimizationRequest, RouteOptimizationResponse, VehicleRoute, DepotLocation, RouteValidationRequest, RouteValidationResponse
 from .customer_data import load_west_la_ice_customers, get_customer_count
 from .route_optimizer import RouteOptimizer
 from .google_maps_service import GoogleMapsService
@@ -122,3 +122,76 @@ async def get_depot_info():
         return {"depots": depot_locations}
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error getting depot info: {str(e)}")
+
+@app.post("/verify-lufkin-route")
+async def verify_lufkin_route(request: dict):
+    """Special verification for Lufkin Monday route"""
+    try:
+        stops = request.get('stops', [])
+        errors = []
+        
+        for stop in stops:
+            if stop.get('depot') != 'Lufkin':
+                errors.append(f"Stop {stop['id']} assigned to wrong depot")
+            
+            lufkin_coords = (31.3382, -94.7291)
+            stop_coords = (stop.get('latitude', 0), stop.get('longitude', 0))
+            distance = route_optimizer._calculate_haversine_distance(lufkin_coords, stop_coords)
+            
+            if distance > 50:
+                errors.append(f"Stop {stop['id']} is {distance:.1f} miles from depot (max: 50)")
+        
+        if len(stops) > 15:
+            errors.append(f"Route has {len(stops)} stops (max: 15 for Lufkin Monday)")
+            
+        return {"valid": len(errors) == 0, "errors": errors}
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error verifying Lufkin route: {str(e)}")
+
+@app.post("/reoptimize")
+async def reoptimize_routes(request: dict):
+    """Force re-optimization with specific constraints"""
+    try:
+        depot = request.get('depot')
+        day = request.get('day', 'Monday')
+        force = request.get('force', False)
+        
+        if not force:
+            return {"message": "Set force=true to proceed with re-optimization"}
+            
+        if not depot:
+            raise HTTPException(status_code=400, detail="Depot parameter is required")
+            
+        all_customers = load_west_la_ice_customers()
+        depot_customers = [c for c in all_customers if c.depot == depot]
+        
+        depot_addresses = {
+            "Leesville": "1707 Smart Street, Leesville, LA 71446",
+            "Lake Charles": "220 Bunker Road, Lake Charles, LA 70615",
+            "Lufkin": "1107 Weiner St, Lufkin, TX 75904"
+        }
+        
+        depot_address = depot_addresses.get(depot)
+        if not depot_address:
+            raise HTTPException(status_code=400, detail=f"Unknown depot: {depot}")
+        
+        routes = await route_optimizer.optimize_routes(
+            customers=depot_customers,
+            depot_addresses=[depot_address],
+            num_vehicles=1 if depot == "Lufkin" else 2,
+            vehicle_distribution={depot: 1 if depot == "Lufkin" else 2}
+        )
+        
+        violations = route_optimizer.enforce_depot_isolation(routes)
+        
+        return {
+            "status": "complete",
+            "routes": routes,
+            "violations": violations,
+            "depot": depot,
+            "day": day
+        }
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error re-optimizing routes: {str(e)}")

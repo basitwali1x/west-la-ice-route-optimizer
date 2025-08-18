@@ -49,4 +49,34 @@ export const api = {
     }
     return response.json();
   },
+
+  async verifyLufkinRoute(stops: any[]): Promise<{ valid: boolean; errors: string[] }> {
+    const response = await fetch(`${API_URL}/verify-lufkin-route`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ stops }),
+    });
+    
+    if (!response.ok) {
+      throw new Error('Failed to verify Lufkin route');
+    }
+    return response.json();
+  },
+
+  async reoptimizeRoutes(depot: string, day: string = 'Monday', force: boolean = true): Promise<any> {
+    const response = await fetch(`${API_URL}/reoptimize`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ depot, day, force }),
+    });
+    
+    if (!response.ok) {
+      throw new Error('Failed to reoptimize routes');
+    }
+    return response.json();
+  },
 };
