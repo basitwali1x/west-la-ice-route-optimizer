@@ -492,3 +492,62 @@ async def optimize_weekly_routes(request: RouteOptimizationRequest):
         
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error optimizing weekly routes: {str(e)}")
+
+@app.post("/optimize-daily-routes")
+async def optimize_daily_routes(request: RouteOptimizationRequest, day: str = "Monday"):
+    """Optimize routes for a specific day with reduced stop counts"""
+    try:
+        daily_customers = [c for c in request.customers if c.day == day]
+        
+        depot_addresses = [
+            "1707 Smart Street, Leesville, LA 71446",
+            "220 Bunker Road, Lake Charles, LA 70615", 
+            "1107 Weiner St, Lufkin, TX 75904"
+        ]
+        
+        routes = await route_optimizer.optimize_routes(
+            customers=daily_customers,
+            depot_addresses=depot_addresses,
+            num_vehicles=request.num_vehicles,
+            vehicle_distribution=request.vehicle_distribution
+        )
+        
+        all_violations = route_optimizer.enforce_depot_isolation(routes)
+        
+        for route in routes:
+            route_violations = [v for v in all_violations if route.depot_name in v]
+            route.violations = route_violations
+            route.compliance = {
+                "DOT_hours": route.total_time_minutes / 60 <= 10,
+                "max_stops": len(route.route_points) <= 15,
+                "distance_limit": not any("miles from" in v for v in route_violations)
+            }
+        
+        total_distance = sum(route.total_distance_miles for route in routes)
+        total_time = sum(route.total_time_minutes for route in routes)
+        
+        depot_locations = []
+        depot_names = ["Leesville", "Lake Charles", "Lufkin"]
+        
+        for i, depot_address in enumerate(depot_addresses):
+            depot_lat, depot_lng = await google_maps_service.geocode_address(depot_address)
+            depot_location = DepotLocation(
+                name=depot_names[i],
+                address=depot_address,
+                latitude=depot_lat,
+                longitude=depot_lng
+            )
+            depot_locations.append(depot_location)
+        
+        return RouteOptimizationResponse(
+            routes=routes,
+            total_distance_miles=round(total_distance, 2),
+            total_time_minutes=round(total_time, 2),
+            depot_locations=depot_locations,
+            status="complete",
+            progress=100,
+            constraint_violations=all_violations
+        )
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error optimizing daily routes: {str(e)}")

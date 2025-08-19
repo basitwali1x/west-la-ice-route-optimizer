@@ -219,3 +219,22 @@ export const optimizeWeeklyRoutes = async (request: RouteOptimizationRequest) =>
     throw error;
   }
 };
+
+export const optimizeDailyRoutes = async (request: RouteOptimizationRequest, day: string = 'Monday') => {
+  try {
+    const response = await fetch(`${API_URL}/optimize-daily-routes?day=${day}`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(request),
+    });
+    if (!response.ok) {
+      throw new Error('Failed to optimize daily routes');
+    }
+    return await response.json();
+  } catch (error) {
+    console.error('Error optimizing daily routes:', error);
+    throw error;
+  }
+};

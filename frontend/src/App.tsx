@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Truck, MapPin, Clock, Route, Users, Play, Loader2, BarChart3 } from 'lucide-react';
+import { Truck, MapPin, Clock, Route, Users, Play, Loader2, BarChart3, Calendar } from 'lucide-react';
 import { Button } from './components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './components/ui/select';
@@ -10,7 +10,7 @@ import GoogleMap from './components/GoogleMap.tsx';
 import { GoogleSheetsSync } from './components/GoogleSheetsSync';
 import { DriverDashboard } from './components/DriverDashboard';
 import { WeeklyVisitDashboard } from './components/WeeklyVisitDashboard';
-import { api } from './services/api';
+import { api, optimizeDailyRoutes } from './services/api';
 import { Customer, RouteOptimizationResponse } from './types';
 
 function App() {
@@ -28,10 +28,11 @@ function App() {
   const [error, setError] = useState<string | null>(null);
   const [progress, setProgress] = useState(0);
   const [depotProgress, setDepotProgress] = useState<{[key: string]: number}>({});
+  const [selectedTruck, setSelectedTruck] = useState<string>('L1');
+  const [selectedDay, setSelectedDay] = useState<string>('Monday');
   const [optimizationComplete, setOptimizationComplete] = useState(false);
   const [startTime, setStartTime] = useState<Date | null>(null);
   const [sheetsData, setSheetsData] = useState<any>(null);
-  const [selectedTruck] = useState('L1');
 
   useEffect(() => {
     loadInitialData();
@@ -202,6 +203,33 @@ function App() {
       setOptimizationComplete(false);
       setError('Failed to optimize routes. Please try again.');
       console.error('Error optimizing routes:', err);
+    } finally {
+      setIsOptimizing(false);
+    }
+  };
+
+  const handleOptimizeDailyRoutes = async (day: string) => {
+    if (customers.length === 0) {
+      alert('No customers loaded. Please load customers first.');
+      return;
+    }
+
+    setIsOptimizing(true);
+    setOptimizationResult(null);
+    setDepotProgress({});
+
+    try {
+      const request = {
+        customers: customers,
+        num_vehicles: numVehicles,
+        vehicle_distribution: vehicleDistribution
+      };
+
+      const result = await optimizeDailyRoutes(request, day);
+      setOptimizationResult(result);
+    } catch (error) {
+      console.error('Error optimizing daily routes:', error);
+      alert('Failed to optimize daily routes. Please try again.');
     } finally {
       setIsOptimizing(false);
     }
@@ -463,23 +491,48 @@ function App() {
               </div>
             )}
 
-            <Button 
-              onClick={optimizeRoutes} 
-              disabled={isOptimizing || customers.length === 0}
-              className="w-full"
-            >
-              {isOptimizing ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Optimizing Routes...
-                </>
-              ) : (
-                <>
-                  <Play className="mr-2 h-4 w-4" />
-                  Optimize Routes
-                </>
-              )}
-            </Button>
+            <div className="space-y-4">
+              <Button 
+                onClick={optimizeRoutes} 
+                disabled={isOptimizing || customers.length === 0}
+                className="w-full"
+              >
+                {isOptimizing ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Optimizing All Routes...
+                  </>
+                ) : (
+                  <>
+                    <Play className="mr-2 h-4 w-4" />
+                    Optimize All Routes
+                  </>
+                )}
+              </Button>
+              
+              <div className="flex items-center space-x-2">
+                <select 
+                  value={selectedDay}
+                  onChange={(e) => setSelectedDay(e.target.value)}
+                  className="flex-1 px-3 py-2 border rounded-md bg-white"
+                >
+                  <option value="Monday">Monday</option>
+                  <option value="Tuesday">Tuesday</option>
+                  <option value="Wednesday">Wednesday</option>
+                  <option value="Thursday">Thursday</option>
+                  <option value="Friday">Friday</option>
+                </select>
+                <Button 
+                  onClick={() => handleOptimizeDailyRoutes(selectedDay)} 
+                  disabled={isOptimizing || customers.length === 0}
+                  variant="outline"
+                  className="flex items-center space-x-2"
+                >
+                  <Calendar className="h-4 w-4" />
+                  <span>Optimize Daily</span>
+                </Button>
+              </div>
+            </div>
           </CardContent>
         </Card>
 
@@ -494,6 +547,56 @@ function App() {
           </TabsList>
 
           <TabsContent value="overview" className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center space-x-2">
+                  <Users className="h-5 w-5" />
+                  <span>Daily Scheduling Controls</span>
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Selected Truck
+                    </label>
+                    <Select value={selectedTruck} onValueChange={setSelectedTruck}>
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="L1">L1 - Lufkin</SelectItem>
+                        <SelectItem value="L2">L2 - Lufkin</SelectItem>
+                        <SelectItem value="L3">L3 - Lufkin</SelectItem>
+                        <SelectItem value="Le1">Le1 - Leesville</SelectItem>
+                        <SelectItem value="Le2">Le2 - Leesville</SelectItem>
+                        <SelectItem value="Le3">Le3 - Leesville</SelectItem>
+                        <SelectItem value="LC1">LC1 - Lake Charles</SelectItem>
+                        <SelectItem value="LC2">LC2 - Lake Charles</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Selected Day
+                    </label>
+                    <Select value={selectedDay} onValueChange={setSelectedDay}>
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="Monday">Monday</SelectItem>
+                        <SelectItem value="Tuesday">Tuesday</SelectItem>
+                        <SelectItem value="Wednesday">Wednesday</SelectItem>
+                        <SelectItem value="Thursday">Thursday</SelectItem>
+                        <SelectItem value="Friday">Friday</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
             {optimizationResult && (
               <Card>
                 <CardHeader>
@@ -561,7 +664,7 @@ function App() {
           </TabsContent>
 
           <TabsContent value="driver" className="space-y-6">
-            <DriverDashboard truckId={selectedTruck} day="Monday" />
+            <DriverDashboard truckId={selectedTruck} day={selectedDay} />
           </TabsContent>
 
           <TabsContent value="weekly" className="space-y-6">
