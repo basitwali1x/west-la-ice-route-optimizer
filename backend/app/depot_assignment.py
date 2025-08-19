@@ -4,24 +4,24 @@ from .google_maps_service import GoogleMapsService
 
 DEPOT_CONSTRAINTS = {
     "Lufkin": {
-        "lat_range": (31.3271, 32.6977),
-        "lng_range": (-95.6588, -94.0909),
+        "lat_range": (30.50, 32.00),
+        "lng_range": (-95.50, -93.50),
         "max_distance": 100,
-        "max_stores": 190,
-        "priority_cities": ["Nacogdoches", "Lufkin", "Diboll", "Jacksonville", "Henderson", "Marshall"],
+        "max_stores": 192,
+        "priority_cities": ["Nacogdoches", "Lufkin", "Diboll", "Jacksonville", "Henderson", "Marshall", "Longview", "Palestine", "Kilgore", "Tyler"],
         "coordinates": (31.3279, -94.7323)
     },
     "Leesville": {
-        "lat_range": (30.7240, 32.0708),
-        "lng_range": (-93.7330, -92.4080),
+        "lat_range": (30.80, 31.50),
+        "lng_range": (-93.80, -92.50),
         "max_distance": 100,
         "max_stores": 190,
-        "priority_cities": ["Leesville", "DeRidder", "Alexandria", "Many", "Pineville", "Hornbeck"],
+        "priority_cities": ["Leesville", "DeRidder", "Alexandria", "Many", "Pineville", "Hornbeck", "Fort Polk"],
         "coordinates": (31.1436, -93.2577)
     },
     "Lake Charles": {
-        "lat_range": (29.8394, 30.5514),
-        "lng_range": (-94.3892, -91.7954),
+        "lat_range": (29.90, 30.50),
+        "lng_range": (-93.80, -92.90),
         "max_distance": 100,
         "max_stores": 189,
         "priority_cities": ["Lake Charles", "Sulphur", "Vinton", "Orange", "Jennings", "Lafayette"],
