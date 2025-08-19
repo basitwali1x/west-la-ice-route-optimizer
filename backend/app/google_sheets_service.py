@@ -192,3 +192,104 @@ class GoogleSheetsService:
         except Exception as e:
             logger.error(f"Error updating route assignments: {e}")
             return False
+    
+    def update_visit_tracking(self, customer_id: str, customer_name: str, address: str, depot: str, visit_date: datetime, priority: str = "STANDARD") -> bool:
+        """Update visit tracking in Google Sheets"""
+        try:
+            sheet_id = os.getenv("DEFAULT_SHEET_ID")
+            if not sheet_id:
+                return False
+                
+            sheet = self.client.open_by_key(sheet_id)
+            
+            try:
+                worksheet = sheet.worksheet("Visit_Tracking")
+            except:
+                worksheet = sheet.add_worksheet(title="Visit_Tracking", rows="1000", cols="8")
+                headers = ["Customer_ID", "Name", "Address", "Depot", "Last_Visit", "Days_Overdue", "Priority", "Visited_This_Week"]
+                worksheet.append_row(headers)
+            
+            days_overdue = max(0, (datetime.now() - visit_date).days - 7)
+            row = [
+                customer_id,
+                customer_name,
+                address,
+                depot,
+                visit_date.strftime("%Y-%m-%d"),
+                days_overdue,
+                priority,
+                "TRUE"
+            ]
+            worksheet.append_row(row)
+            
+            return True
+        except Exception as e:
+            logger.error(f"Error updating visit tracking: {e}")
+            return False
+    
+    def reset_weekly_visits(self) -> bool:
+        """Reset all visited_this_week flags in Google Sheets"""
+        try:
+            sheet_id = os.getenv("DEFAULT_SHEET_ID")
+            if not sheet_id:
+                return False
+                
+            sheet = self.client.open_by_key(sheet_id)
+            
+            try:
+                worksheet = sheet.worksheet("Visit_Tracking")
+                all_records = worksheet.get_all_records()
+                
+                worksheet.clear()
+                headers = ["Customer_ID", "Name", "Address", "Depot", "Last_Visit", "Days_Overdue", "Priority", "Visited_This_Week"]
+                worksheet.append_row(headers)
+                
+                for record in all_records:
+                    row = [
+                        record.get("Customer_ID", ""),
+                        record.get("Name", ""),
+                        record.get("Address", ""),
+                        record.get("Depot", ""),
+                        record.get("Last_Visit", ""),
+                        record.get("Days_Overdue", 0),
+                        record.get("Priority", "STANDARD"),
+                        "FALSE"
+                    ]
+                    worksheet.append_row(row)
+                
+                self.log_reset(datetime.now())
+                return True
+            except:
+                return True
+                
+        except Exception as e:
+            logger.error(f"Error resetting weekly visits: {e}")
+            return False
+    
+    def log_reset(self, reset_date: datetime) -> bool:
+        """Log weekly reset event"""
+        try:
+            sheet_id = os.getenv("DEFAULT_SHEET_ID")
+            if not sheet_id:
+                return False
+                
+            sheet = self.client.open_by_key(sheet_id)
+            
+            try:
+                worksheet = sheet.worksheet("Reset_Log")
+            except:
+                worksheet = sheet.add_worksheet(title="Reset_Log", rows="100", cols="3")
+                headers = ["Reset_Date", "Status", "Notes"]
+                worksheet.append_row(headers)
+            
+            row = [
+                reset_date.strftime("%Y-%m-%d %H:%M:%S"),
+                "SUCCESS",
+                "Weekly visit flags reset automatically"
+            ]
+            worksheet.append_row(row)
+            
+            return True
+        except Exception as e:
+            logger.error(f"Error logging reset: {e}")
+            return False

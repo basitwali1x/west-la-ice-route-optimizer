@@ -1,4 +1,4 @@
-import { Customer, RouteOptimizationRequest, RouteOptimizationResponse } from '../types';
+import { Customer, RouteOptimizationRequest, RouteOptimizationResponse, WeeklyResetRequest, VisitTrackingUpdate } from '../types';
 
 export interface SheetsSync {
   sheet_id: string;
@@ -148,4 +148,74 @@ export const api = {
     }
     return response.json();
   },
+};
+
+export const resetWeeklyVisits = async (request: WeeklyResetRequest = {}) => {
+  try {
+    const response = await fetch(`${API_URL}/reset-weekly-visits`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(request),
+    });
+    if (!response.ok) {
+      throw new Error('Failed to reset weekly visits');
+    }
+    return await response.json();
+  } catch (error) {
+    console.error('Error resetting weekly visits:', error);
+    throw error;
+  }
+};
+
+export const getVisitStatus = async () => {
+  try {
+    const response = await fetch(`${API_URL}/visit-status`);
+    if (!response.ok) {
+      throw new Error('Failed to get visit status');
+    }
+    return await response.json();
+  } catch (error) {
+    console.error('Error getting visit status:', error);
+    throw error;
+  }
+};
+
+export const markCustomerVisited = async (update: VisitTrackingUpdate) => {
+  try {
+    const response = await fetch(`${API_URL}/mark-customer-visited`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(update),
+    });
+    if (!response.ok) {
+      throw new Error('Failed to mark customer as visited');
+    }
+    return await response.json();
+  } catch (error) {
+    console.error('Error marking customer as visited:', error);
+    throw error;
+  }
+};
+
+export const optimizeWeeklyRoutes = async (request: RouteOptimizationRequest) => {
+  try {
+    const response = await fetch(`${API_URL}/optimize-weekly-routes`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(request),
+    });
+    if (!response.ok) {
+      throw new Error('Failed to optimize weekly routes');
+    }
+    return await response.json();
+  } catch (error) {
+    console.error('Error optimizing weekly routes:', error);
+    throw error;
+  }
 };

@@ -7,6 +7,11 @@ export interface Customer {
   day?: string;
   latitude?: number;
   longitude?: number;
+  last_visit_date?: string;
+  visited_this_week?: boolean;
+  days_since_last_visit?: number;
+  priority_level?: string;
+  weekly_visit_required?: boolean;
 }
 
 export interface RoutePoint {
@@ -50,4 +55,25 @@ export interface RouteOptimizationRequest {
   num_vehicles: number;
   depot_addresses: string[];
   vehicle_distribution?: { [key: string]: number };
+}
+
+export interface WeeklyVisitStatus {
+  depot_name: string;
+  total_customers: number;
+  visited_this_week: number;
+  pending_visits: number;
+  overdue_customers: number;
+  completion_percentage: number;
+}
+
+export interface WeeklyResetRequest {
+  force_reset?: boolean;
+  reset_date?: string;
+}
+
+export interface VisitTrackingUpdate {
+  customer_id: number;
+  visited_date: string;
+  depot: string;
+  truck_id?: string;
 }

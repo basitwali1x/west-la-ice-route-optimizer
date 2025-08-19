@@ -3,8 +3,9 @@ from fastapi.middleware.cors import CORSMiddleware
 from dotenv import load_dotenv
 import os
 from typing import List
+from datetime import datetime
 
-from .models import Customer, RouteOptimizationRequest, RouteOptimizationResponse, VehicleRoute, DepotLocation, RouteValidationRequest, RouteValidationResponse, SheetsSync, TruckAssignment, DriverRoute, SheetsData
+from .models import Customer, RouteOptimizationRequest, RouteOptimizationResponse, VehicleRoute, DepotLocation, RouteValidationRequest, RouteValidationResponse, SheetsSync, TruckAssignment, DriverRoute, SheetsData, WeeklyVisitStatus, WeeklyResetRequest, VisitTrackingUpdate
 from .customer_data import load_west_la_ice_customers, get_customer_count
 from .route_optimizer import RouteOptimizer, DEPOT_CONSTRAINTS
 from .google_maps_service import GoogleMapsService
@@ -337,3 +338,157 @@ async def reoptimize_routes(request: dict):
         
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error re-optimizing routes: {str(e)}")
+
+@app.post("/reset-weekly-visits")
+async def reset_weekly_visits(request: WeeklyResetRequest = WeeklyResetRequest()):
+    """Reset all visited_this_week flags for weekly cycle"""
+    try:
+        customers = load_west_la_ice_customers()
+        
+        for customer in customers:
+            customer.visited_this_week = False
+        
+        success = sheets_service.reset_weekly_visits()
+        
+        if success:
+            return {
+                "status": "success",
+                "message": "Weekly visit flags reset successfully",
+                "reset_date": request.reset_date or datetime.now().isoformat(),
+                "customers_reset": len(customers)
+            }
+        else:
+            raise HTTPException(status_code=500, detail="Failed to reset weekly visits in Google Sheets")
+            
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error resetting weekly visits: {str(e)}")
+
+@app.get("/visit-status")
+async def get_visit_status():
+    """Get weekly visit status for all depots"""
+    try:
+        customers = load_west_la_ice_customers()
+        
+        depot_stats = {}
+        for depot_name in ["Lufkin", "Leesville", "Lake Charles"]:
+            depot_customers = [c for c in customers if c.depot == depot_name]
+            visited_count = len([c for c in depot_customers if c.visited_this_week])
+            overdue_count = len([c for c in depot_customers if c.days_since_last_visit and c.days_since_last_visit > 7])
+            
+            depot_stats[depot_name] = WeeklyVisitStatus(
+                depot_name=depot_name,
+                total_customers=len(depot_customers),
+                visited_this_week=visited_count,
+                pending_visits=len(depot_customers) - visited_count,
+                overdue_customers=overdue_count,
+                completion_percentage=round((visited_count / len(depot_customers)) * 100, 1) if depot_customers else 0
+            )
+        
+        return {
+            "status": "success",
+            "depot_status": depot_stats,
+            "total_customers": len(customers),
+            "total_visited": sum(len([c for c in customers if c.depot == depot and c.visited_this_week]) for depot in depot_stats.keys()),
+            "total_overdue": sum(depot_stats[depot].overdue_customers for depot in depot_stats.keys())
+        }
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error getting visit status: {str(e)}")
+
+@app.post("/mark-customer-visited")
+async def mark_customer_visited(update: VisitTrackingUpdate):
+    """Mark a customer as visited and update tracking"""
+    try:
+        customers = load_west_la_ice_customers()
+        
+        customer = next((c for c in customers if c.id == update.customer_id), None)
+        if not customer:
+            raise HTTPException(status_code=404, detail="Customer not found")
+        
+        customer.visited_this_week = True
+        customer.last_visit_date = update.visited_date
+        customer.days_since_last_visit = 0
+        customer.priority_level = "STANDARD"
+        
+        success = sheets_service.update_visit_tracking(
+            customer_id=str(update.customer_id),
+            customer_name=customer.name,
+            address=customer.address,
+            depot=update.depot,
+            visit_date=update.visited_date,
+            priority=customer.priority_level
+        )
+        
+        if success:
+            return {
+                "status": "success",
+                "message": f"Customer {customer.name} marked as visited",
+                "customer_id": update.customer_id,
+                "visit_date": update.visited_date.isoformat()
+            }
+        else:
+            raise HTTPException(status_code=500, detail="Failed to update visit tracking in Google Sheets")
+            
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error marking customer as visited: {str(e)}")
+
+@app.post("/optimize-weekly-routes")
+async def optimize_weekly_routes(request: RouteOptimizationRequest):
+    """Optimize routes for weekly visits with priority and capacity constraints"""
+    try:
+        depot_addresses = [
+            "1707 Smart Street, Leesville, LA 71446",
+            "220 Bunker Road, Lake Charles, LA 70615", 
+            "1107 Weiner St, Lufkin, TX 75904"
+        ]
+        
+        routes = await route_optimizer.optimize_weekly_routes(
+            customers=request.customers,
+            depot_addresses=depot_addresses,
+            num_vehicles=request.num_vehicles,
+            vehicle_distribution=request.vehicle_distribution
+        )
+        
+        all_violations = route_optimizer.enforce_depot_isolation(routes)
+        
+        for route in routes:
+            route_violations = [v for v in all_violations if route.depot_name in v]
+            route.violations = route_violations
+            route.compliance = {
+                "DOT_hours": route.total_time_minutes / 60 <= 10,
+                "max_stops": len(route.route_points) <= DEPOT_CONSTRAINTS.get(route.depot_name, {}).get("max_stops", 15),
+                "distance_limit": not any("miles from" in v for v in route_violations),
+                "weekly_capacity": len([rp for rp in route.route_points]) <= DEPOT_CONSTRAINTS.get(route.depot_name, {}).get("weekly_capacity", 200)
+            }
+            
+            priority_customers = [rp for rp in route.route_points if any(c.id == rp.customer_id and c.priority_level == "URGENT" for c in request.customers)]
+            route.priority_score = len(priority_customers) / len(route.route_points) if route.route_points else 0
+        
+        total_distance = sum(route.total_distance_miles for route in routes)
+        total_time = sum(route.total_time_minutes for route in routes)
+        
+        depot_locations = []
+        depot_names = ["Leesville", "Lake Charles", "Lufkin"]
+        
+        for i, depot_address in enumerate(depot_addresses):
+            depot_lat, depot_lng = await google_maps_service.geocode_address(depot_address)
+            depot_location = DepotLocation(
+                name=depot_names[i],
+                address=depot_address,
+                latitude=depot_lat,
+                longitude=depot_lng
+            )
+            depot_locations.append(depot_location)
+        
+        return RouteOptimizationResponse(
+            routes=routes,
+            total_distance_miles=round(total_distance, 2),
+            total_time_minutes=round(total_time, 2),
+            depot_locations=depot_locations,
+            status="complete",
+            progress=100,
+            constraint_violations=all_violations
+        )
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error optimizing weekly routes: {str(e)}")
