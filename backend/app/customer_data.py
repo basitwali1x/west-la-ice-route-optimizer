@@ -2,70 +2,15 @@ import pandas as pd
 from typing import List
 from .models import Customer
 import os
-import math
 from .google_sheets_service import GoogleSheetsService
-from .google_maps_service import GoogleMapsService
-
-DEPOT_CONSTRAINTS = {
-    "Lufkin": {"max_distance": 50, "coordinates": (31.3382, -94.7291)},
-    "Lake Charles": {"max_distance": 75, "coordinates": (30.2266, -93.2174)},
-    "Leesville": {"max_distance": 100, "coordinates": (31.1435, -93.2607)}
-}
-
-def _calculate_haversine_distance(coord1: tuple, coord2: tuple) -> float:
-    """Calculate distance between two coordinates in miles"""
-    lat1, lng1 = coord1
-    lat2, lng2 = coord2
-    
-    dlat = math.radians(lat2 - lat1)
-    dlng = math.radians(lng2 - lng1)
-    a = (math.sin(dlat/2) * math.sin(dlat/2) + 
-         math.cos(math.radians(lat1)) * math.cos(math.radians(lat2)) * 
-         math.sin(dlng/2) * math.sin(dlng/2))
-    c = 2 * math.atan2(math.sqrt(a), math.sqrt(1-a))
-    return 3959 * c
-
-def assign_depot_by_distance(address: str) -> str:
-    """Assign depot based on distance constraints"""
-    try:
-        maps_service = GoogleMapsService()
-        coords = maps_service._generate_realistic_coordinates(address)
-        if not coords:
-            return 'Leesville'
-        
-        customer_coords = coords
-        
-        best_depot = None
-        min_distance = float('inf')
-        
-        for depot_name, constraints in DEPOT_CONSTRAINTS.items():
-            depot_coords = constraints['coordinates']
-            distance = _calculate_haversine_distance(depot_coords, customer_coords)
-            
-            if distance <= constraints['max_distance'] and distance < min_distance:
-                best_depot = depot_name
-                min_distance = distance
-        
-        if not best_depot:
-            for depot_name, constraints in DEPOT_CONSTRAINTS.items():
-                depot_coords = constraints['coordinates']
-                distance = _calculate_haversine_distance(depot_coords, customer_coords)
-                
-                if distance < min_distance:
-                    best_depot = depot_name
-                    min_distance = distance
-        
-        return best_depot or 'Leesville'
-        
-    except Exception as e:
-        print(f'Error geocoding address {address}: {e}')
-        return 'Leesville'
+from .depot_assignment import assign_depot_by_distance, reset_depot_counts, get_depot_assignment_counts
 
 def load_west_la_ice_customers() -> List[Customer]:
     """
     Load the West LA Ice customers from the provided Excel file.
     If Google Sheets sync has been performed, use that data instead.
     """
+    reset_depot_counts()
     sheet_id = os.getenv("DEFAULT_SHEET_ID")
     if sheet_id:
         try:
@@ -91,6 +36,9 @@ def load_west_la_ice_customers() -> List[Customer]:
                             all_customers.append(customer)
                 
                 if all_customers:
+                    counts = get_depot_assignment_counts()
+                    print(f"Loaded {len(all_customers)} customers from Google Sheets")
+                    print(f"Final depot distribution: Lufkin: {counts['Lufkin']}, Lake Charles: {counts['Lake Charles']}, Leesville: {counts['Leesville']}")
                     return all_customers
         except Exception as e:
             print(f"Error loading from Google Sheets: {e}")
@@ -143,6 +91,9 @@ def load_west_la_ice_customers() -> List[Customer]:
                 print(f'Error parsing row {i}: {e}')
                 continue
         
+        counts = get_depot_assignment_counts()
+        print(f"Loaded {len(customers)} customers from Excel file")
+        print(f"Final depot distribution: Lufkin: {counts['Lufkin']}, Lake Charles: {counts['Lake Charles']}, Leesville: {counts['Leesville']}")
         return customers
         
     except Exception as e:

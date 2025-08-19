@@ -5,6 +5,7 @@ import os
 import json
 from datetime import datetime, timedelta
 import logging
+from .depot_assignment import assign_depot_by_distance
 
 logger = logging.getLogger(__name__)
 
@@ -97,11 +98,14 @@ class GoogleSheetsService:
             
             for record in records:
                 if record.get('Customer') and record.get('Address'):
+                    address = record.get('Address', '').strip()
+                    assigned_depot = assign_depot_by_distance(address)
+                    
                     customer = {
                         "name": record.get('Customer', '').strip(),
-                        "address": record.get('Address', '').strip(),
+                        "address": address,
                         "phone": record.get('Main Phone', '').strip(),
-                        "depot": worksheet.title.lower()
+                        "depot": assigned_depot
                     }
                     customers.append(customer)
             
