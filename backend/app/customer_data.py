@@ -3,6 +3,8 @@ from typing import List
 from .models import Customer
 import os
 from .google_sheets_service import GoogleSheetsService
+from datetime import datetime, timedelta
+import random
 
 def load_west_la_ice_customers() -> List[Customer]:
     """
@@ -20,6 +22,8 @@ def load_west_la_ice_customers() -> List[Customer]:
                 for depot, depot_customers in sheet_data["customers"].items():
                     for i, customer_data in enumerate(depot_customers):
                         if customer_data.get("name") and customer_data.get("address"):
+                            last_visit = datetime.now() - timedelta(days=random.randint(0, 10))
+                            days_since = (datetime.now() - last_visit).days
                             customer = Customer(
                                 id=f"{depot}_{i}",
                                 name=customer_data["name"],
@@ -27,7 +31,12 @@ def load_west_la_ice_customers() -> List[Customer]:
                                 depot=depot,
                                 truck=f"Truck {(i % 8) + 1}",
                                 day="Monday",
-                                phone=customer_data.get("phone", "")
+                                phone=customer_data.get("phone", ""),
+                                last_visit_date=last_visit,
+                                visited_this_week=random.choice([True, False]),
+                                days_since_last_visit=days_since,
+                                priority_level="URGENT" if days_since > 7 else "HIGH" if days_since > 5 else "STANDARD",
+                                weekly_visit_required=True
                             )
                             all_customers.append(customer)
                 
@@ -80,13 +89,20 @@ def load_west_la_ice_customers() -> List[Customer]:
                         else:
                             depot = 'Leesville'
                     
+                    last_visit = datetime.now() - timedelta(days=random.randint(0, 10))
+                    days_since = (datetime.now() - last_visit).days
                     customer = Customer(
                         id=len(customers) + 1,
                         name=customer_name,
                         address=address,
                         depot=depot,
                         truck=f"Truck {((len(customers)) % 8) + 1}",
-                        day="Monday"
+                        day="Monday",
+                        last_visit_date=last_visit,
+                        visited_this_week=random.choice([True, False]),
+                        days_since_last_visit=days_since,
+                        priority_level="URGENT" if days_since > 7 else "HIGH" if days_since > 5 else "STANDARD",
+                        weekly_visit_required=True
                     )
                     customers.append(customer)
                     

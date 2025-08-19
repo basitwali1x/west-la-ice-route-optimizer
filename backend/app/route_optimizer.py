@@ -3,6 +3,7 @@ from ortools.constraint_solver import pywrapcp
 from typing import List, Dict, Optional
 import asyncio
 import math
+from datetime import datetime, timedelta
 from .models import Customer, VehicleRoute, RoutePoint, RouteOptimizationRequest, RouteOptimizationResponse
 from .google_maps_service import GoogleMapsService
 
@@ -25,9 +26,39 @@ LUFKIN_MONDAY_STOPS = [
 ]
 
 DEPOT_CONSTRAINTS = {
-    "Lufkin": {"max_distance": 50, "max_stops_monday": 15, "max_hours": 10},
-    "Lake Charles": {"max_distance": 75, "max_stops": 15, "max_hours": 10},
-    "Leesville": {"max_distance": 100, "max_stops": 15, "max_hours": 10}
+    "Lufkin": {
+        "max_distance": 50, 
+        "max_stops_monday": 15, 
+        "max_hours": 10,
+        "weekly_capacity": 192  # Weekly customer limit for balanced distribution
+    },
+    "Lake Charles": {
+        "max_distance": 75, 
+        "max_stops": 15, 
+        "max_hours": 10,
+        "weekly_capacity": 189  # Weekly customer limit for balanced distribution
+    },
+    "Leesville": {
+        "max_distance": 100, 
+        "max_stops": 15, 
+        "max_hours": 10,
+        "weekly_capacity": 190  # Weekly customer limit for balanced distribution
+    }
+}
+
+PRIORITY_RULES = {
+    "URGENT": {
+        "condition": lambda c: c.days_since_last_visit and c.days_since_last_visit > 7,
+        "multiplier": 0.5  # Higher priority = lower cost in optimization
+    },
+    "HIGH": {
+        "condition": lambda c: c.days_since_last_visit and c.days_since_last_visit > 5,
+        "multiplier": 0.8
+    },
+    "STANDARD": {
+        "condition": lambda c: True,
+        "multiplier": 1.0
+    }
 }
 
 class RouteOptimizer:
@@ -36,6 +67,80 @@ class RouteOptimizer:
         self.depot_radius = depot_radius
         self.max_stops = max_stops
         self.truck_allocations = truck_allocations or {"Lufkin": 3, "Leesville": 3, "Lake Charles": 2}
+    
+    def assign_priority(self, customer: Customer) -> str:
+        """Assign priority level based on last visit date"""
+        if not customer.last_visit_date:
+            return "HIGH"  # New customers get high priority
+        
+        days_overdue = (datetime.now() - customer.last_visit_date).days
+        customer.days_since_last_visit = days_overdue
+        
+        if days_overdue > 7:
+            return "URGENT"
+        elif days_overdue > 5:
+            return "HIGH"
+        return "STANDARD"
+    
+    def assign_depot_with_capacity(self, customer: Customer, current_assignments: Dict[str, int]) -> str:
+        """Assign customer to depot considering weekly capacity limits"""
+        depot_locations = {
+            "Lufkin": {"lat": 31.3382, "lng": -94.7291},
+            "Leesville": {"lat": 31.1435, "lng": -93.2607},
+            "Lake Charles": {"lat": 30.2266, "lng": -93.2174}
+        }
+        
+        if not customer.latitude or not customer.longitude:
+            return customer.depot or "Leesville"
+        
+        distances = {}
+        for depot_name, coords in depot_locations.items():
+            distance = self._calculate_distance(
+                customer.latitude, customer.longitude,
+                coords['lat'], coords['lng']
+            )
+            distances[depot_name] = distance
+        
+        sorted_depots = sorted(distances.items(), key=lambda x: x[1])
+        
+        for depot_name, distance in sorted_depots:
+            constraints = DEPOT_CONSTRAINTS[depot_name]
+            max_capacity = constraints["weekly_capacity"]
+            current_count = current_assignments.get(depot_name, 0)
+            
+            if (distance <= constraints["max_distance"] and 
+                current_count < max_capacity):
+                return depot_name
+        
+        remaining_capacity = {
+            depot: DEPOT_CONSTRAINTS[depot]["weekly_capacity"] - current_assignments.get(depot, 0)
+            for depot in DEPOT_CONSTRAINTS.keys()
+        }
+        return max(remaining_capacity, key=remaining_capacity.get)
+    
+    def filter_unvisited_customers(self, customers: List[Customer]) -> List[Customer]:
+        """Filter customers who haven't been visited this week"""
+        unvisited = [c for c in customers if not c.visited_this_week and c.weekly_visit_required]
+        
+        for customer in unvisited:
+            customer.priority_level = self.assign_priority(customer)
+        
+        priority_order = {"URGENT": 0, "HIGH": 1, "STANDARD": 2}
+        unvisited.sort(key=lambda c: priority_order.get(c.priority_level, 2))
+        
+        return unvisited
+    
+    async def optimize_weekly_routes(self, customers: List[Customer], depot_addresses: List[str], num_vehicles: int = 8, vehicle_distribution: Optional[Dict[str, int]] = None) -> List[VehicleRoute]:
+        """Optimize routes for weekly visits with priority and capacity constraints"""
+        unvisited_customers = self.filter_unvisited_customers(customers)
+        
+        current_assignments = {"Lufkin": 0, "Leesville": 0, "Lake Charles": 0}
+        for customer in unvisited_customers:
+            assigned_depot = self.assign_depot_with_capacity(customer, current_assignments)
+            customer.depot = assigned_depot
+            current_assignments[assigned_depot] += 1
+        
+        return await self.optimize_routes(unvisited_customers, depot_addresses, num_vehicles, vehicle_distribution)
     
     async def optimize_routes(self, customers: List[Customer], depot_addresses: List[str], num_vehicles: int = 8, vehicle_distribution: Optional[Dict[str, int]] = None) -> List[VehicleRoute]:
         """Optimize routes using OR-Tools with Google Maps distance data"""

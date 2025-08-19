@@ -1,5 +1,6 @@
 from pydantic import BaseModel
 from typing import List, Optional, Dict, Any
+from datetime import datetime
 
 class Customer(BaseModel):
     id: int
@@ -15,6 +16,11 @@ class Customer(BaseModel):
     estimated_time: Optional[str] = None
     priority: Optional[bool] = False
     phone: Optional[str] = None
+    last_visit_date: Optional[datetime] = None
+    visited_this_week: bool = False
+    days_since_last_visit: Optional[int] = 0
+    priority_level: str = "STANDARD"  # URGENT, HIGH, STANDARD
+    weekly_visit_required: bool = True
 
 class RouteOptimizationRequest(BaseModel):
     customers: List[Customer]
@@ -42,6 +48,7 @@ class VehicleRoute(BaseModel):
     total_time_minutes: float
     compliance: Optional[Dict[str, bool]] = None
     violations: Optional[List[str]] = None
+    priority_score: Optional[float] = None
 
 class SheetsSync(BaseModel):
     sheet_id: str
@@ -101,3 +108,21 @@ class RouteValidationResponse(BaseModel):
     valid: bool
     errors: List[str]
     warnings: Optional[List[str]] = None
+
+class WeeklyVisitStatus(BaseModel):
+    depot_name: str
+    total_customers: int
+    visited_this_week: int
+    pending_visits: int
+    overdue_customers: int
+    completion_percentage: float
+
+class WeeklyResetRequest(BaseModel):
+    force_reset: bool = False
+    reset_date: Optional[datetime] = None
+
+class VisitTrackingUpdate(BaseModel):
+    customer_id: int
+    visited_date: datetime
+    depot: str
+    truck_id: Optional[str] = None

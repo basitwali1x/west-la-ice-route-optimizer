@@ -9,6 +9,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from './components/ui/tabs';
 import GoogleMap from './components/GoogleMap.tsx';
 import { GoogleSheetsSync } from './components/GoogleSheetsSync';
 import { DriverDashboard } from './components/DriverDashboard';
+import { WeeklyVisitDashboard } from './components/WeeklyVisitDashboard';
 import { api } from './services/api';
 import { Customer, RouteOptimizationResponse } from './types';
 
@@ -483,10 +484,11 @@ function App() {
         </Card>
 
         <Tabs defaultValue="overview" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-5">
+          <TabsList className="grid w-full grid-cols-6">
             <TabsTrigger value="overview">Overview</TabsTrigger>
             <TabsTrigger value="sheets">Google Sheets</TabsTrigger>
             <TabsTrigger value="driver">Driver Dashboard</TabsTrigger>
+            <TabsTrigger value="weekly">Weekly Visits</TabsTrigger>
             <TabsTrigger value="map">Route Map</TabsTrigger>
             <TabsTrigger value="routes">Route Details</TabsTrigger>
           </TabsList>
@@ -560,6 +562,10 @@ function App() {
 
           <TabsContent value="driver" className="space-y-6">
             <DriverDashboard truckId={selectedTruck} day="Monday" />
+          </TabsContent>
+
+          <TabsContent value="weekly" className="space-y-6">
+            <WeeklyVisitDashboard />
           </TabsContent>
 
           {optimizationResult && (
