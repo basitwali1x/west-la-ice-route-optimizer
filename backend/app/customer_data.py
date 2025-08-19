@@ -48,7 +48,7 @@ def load_west_la_ice_customers() -> List[Customer]:
     excel_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'deinjjee.xlsx')
     
     try:
-        df = pd.read_excel(excel_path, header=None)
+        df = pd.read_excel(excel_path, sheet_name='all', header=0)
         
         customers = []
         depot_mapping = {
@@ -59,52 +59,46 @@ def load_west_la_ice_customers() -> List[Customer]:
         
         for i, row in df.iterrows():
             try:
-                row_str = str(row.iloc[0])
-                if pd.isna(row.iloc[0]) or row_str.strip() == '' or row_str == 'Customer,Address,Main Phone,Depot,Truck,Day':
+                if pd.isna(row.iloc[0]) or str(row.iloc[0]).strip() == '':
                     continue
                 
-                fields = [field.strip() for field in row_str.split(',')]
+                customer_name = str(row.iloc[0]).strip() if not pd.isna(row.iloc[0]) else f'Customer {i}'
+                address = str(row.iloc[1]).strip() if len(row) > 1 and not pd.isna(row.iloc[1]) else ''
+                phone = str(row.iloc[2]).strip() if len(row) > 2 and not pd.isna(row.iloc[2]) else ''
                 
-                if len(fields) >= 2:
-                    customer_name = fields[0] if len(fields) > 0 else f'Customer {i}'
-                    address = fields[1] if len(fields) > 1 else ''
-                    
-                    depot = ''
-                    if len(fields) > 3:
-                        potential_depot = fields[3]
-                        if potential_depot in depot_mapping:
-                            depot = potential_depot
-                        else:
-                            if 'Lufkin' in address or 'TX 759' in address:
-                                depot = 'Lufkin'
-                            elif 'Lake Charles' in address or 'LA 706' in address:
-                                depot = 'Lake Charles'
-                            else:
-                                depot = 'Leesville'
-                    else:
-                        if 'Lufkin' in address or 'TX 759' in address:
-                            depot = 'Lufkin'
-                        elif 'Lake Charles' in address or 'LA 706' in address:
-                            depot = 'Lake Charles'
-                        else:
-                            depot = 'Leesville'
-                    
-                    last_visit = datetime.now() - timedelta(days=random.randint(0, 10))
-                    days_since = (datetime.now() - last_visit).days
-                    customer = Customer(
-                        id=len(customers) + 1,
-                        name=customer_name,
-                        address=address,
-                        depot=depot,
-                        truck=f"Truck {((len(customers)) % 8) + 1}",
-                        day=["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"][len(customers) % 5],
-                        last_visit_date=last_visit,
-                        visited_this_week=random.choice([True, False]),
-                        days_since_last_visit=days_since,
-                        priority_level="URGENT" if days_since > 7 else "HIGH" if days_since > 5 else "STANDARD",
-                        weekly_visit_required=True
-                    )
-                    customers.append(customer)
+                depot = 'Leesville'  # Default
+                address_upper = address.upper()
+                
+                lufkin_keywords = ['LUFKIN', 'TX 759', 'HEMPHILL', 'JASPER', 'ZAVALLA', 'DIBOLL', 'NACOGDOCHES', 
+                                 'HUNTINGTON', 'CORRIGAN', 'COLMESNEIL', 'WOODVILLE', 'NEWTON', 'KIRBYVILLE', 
+                                 'BUNA', 'SPURGER', 'WARREN', 'CHESTER', 'TYLER', 'CARTHAGE', 'MARSHALL']
+                
+                lake_charles_keywords = ['LAKE CHARLES', 'LA 706', 'SULPHUR', 'VINTON', 'WESTLAKE', 'MOSS BLUFF',
+                                       'IOWA', 'WELSH', 'JENNINGS', 'CAMERON', 'HACKBERRY', 'GRAND CHENIER',
+                                       'CREOLE', 'BELL CITY', 'RAGLEY', 'DEQUINCY']
+                
+                if any(keyword in address_upper for keyword in lufkin_keywords):
+                    depot = 'Lufkin'
+                elif any(keyword in address_upper for keyword in lake_charles_keywords):
+                    depot = 'Lake Charles'
+                
+                last_visit = datetime.now() - timedelta(days=random.randint(0, 10))
+                days_since = (datetime.now() - last_visit).days
+                customer = Customer(
+                    id=len(customers) + 1,
+                    name=customer_name,
+                    address=address,
+                    depot=depot,
+                    truck=f"Truck {((len(customers)) % 8) + 1}",
+                    day=["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"][len(customers) % 5],
+                    phone=phone,
+                    last_visit_date=last_visit,
+                    visited_this_week=random.choice([True, False]),
+                    days_since_last_visit=days_since,
+                    priority_level="URGENT" if days_since > 7 else "HIGH" if days_since > 5 else "STANDARD",
+                    weekly_visit_required=True
+                )
+                customers.append(customer)
                     
             except Exception as e:
                 print(f'Error parsing row {i}: {e}')
