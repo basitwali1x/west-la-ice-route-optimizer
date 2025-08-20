@@ -12,7 +12,7 @@ class GoogleMapsService:
         
     async def geocode_address(self, address: str) -> Tuple[float, float]:
         """Geocode an address to get latitude and longitude"""
-        return self._generate_realistic_coordinates(address)
+        return self._get_coordinates_from_csv(address)
     
     def _generate_realistic_coordinates(self, address: str) -> Tuple[float, float]:
         """Generate realistic coordinates using hash-based approach with depot-based distribution"""
@@ -32,7 +32,7 @@ class GoogleMapsService:
         else:
             hash_val = int(hashlib.md5(address.encode()).hexdigest()[:8], 16)
             
-            if "Lufkin" in address or "TX" in address or "Huntington" in address or "Zavalla" in address or "Ratcliff" in address:
+            if "Lufkin" in address or ("TX" in address and ("Lufkin" in address or "Huntington" in address or "Zavalla" in address or "Ratcliff" in address)):
                 base_lat = 31.3382
                 base_lng = -94.7291
                 lat_range = 0.08  # ~5-6 mile radius
@@ -96,7 +96,7 @@ class GoogleMapsService:
                             else:
                                 all_results["rows"].append(row)
                 
-                await asyncio.sleep(0.1)
+                await asyncio.sleep(0.05)
         
         return all_results
     
@@ -145,27 +145,8 @@ class GoogleMapsService:
         
         coords = []
         for i, location in enumerate(locations):
-            if location == "1707 Smart Street, Leesville, LA 71446":
-                coords.append((31.1435, -93.2607))
-            elif location == "220 Bunker Road, Lake Charles, LA 70615":
-                coords.append((30.2266, -93.2174))
-            elif location == "1107 Weiner St, Lufkin, TX 75904":
-                coords.append((31.3382, -94.7291))
-            else:
-                import hashlib
-                hash_val = int(hashlib.md5(location.encode()).hexdigest()[:8], 16)
-                
-                if "Lufkin" in location or "TX" in location or "Huntington" in location or "Zavalla" in location or "Ratcliff" in location:
-                    base_lat, base_lng = 31.3382, -94.7291
-                elif "Lake Charles" in location or "LA 706" in location:
-                    base_lat, base_lng = 30.2266, -93.2174
-                else:
-                    base_lat, base_lng = 31.1435, -93.2607
-                
-                lat_variation = ((hash_val % 1000) / 1000.0 - 0.5) * 0.08
-                lng_variation = (((hash_val >> 10) % 1000) / 1000.0 - 0.5) * 0.08
-                
-                coords.append((base_lat + lat_variation, base_lng + lng_variation))
+            lat, lng = self._get_coordinates_from_csv(location)
+            coords.append((lat, lng))
         
         for i in range(n):
             for j in range(n):
@@ -199,7 +180,7 @@ class GoogleMapsService:
             return "Lake Charles"
         elif location == "1107 Weiner St, Lufkin, TX 75904":
             return "Lufkin"
-        elif "Lufkin" in location or "TX" in location or "Huntington" in location or "Zavalla" in location or "Ratcliff" in location:
+        elif "Lufkin" in location or ("TX" in location and ("Lufkin" in location or "Huntington" in location or "Zavalla" in location or "Ratcliff" in location)):
             return "Lufkin"
         elif "Lake Charles" in location or "LA 706" in location:
             return "Lake Charles"
@@ -211,3 +192,61 @@ class GoogleMapsService:
         origin_depot = self._get_depot_for_location(origin)
         dest_depot = self._get_depot_for_location(destination)
         return origin_depot != dest_depot
+    
+    def _get_coordinates_from_csv(self, address: str) -> Tuple[float, float]:
+        """Get coordinates from CSV data or fall back to depot coordinates"""
+        import csv
+        import os
+        
+        print(f"DEBUG: Geocoding address: {address}")
+        
+        if address == "1707 Smart Street, Leesville, LA 71446":
+            print(f"DEBUG: Exact Leesville depot match")
+            return (31.1435, -93.2607)
+        elif address == "220 Bunker Road, Lake Charles, LA 70615":
+            print(f"DEBUG: Exact Lake Charles depot match")
+            return (30.2266, -93.2174)
+        elif address == "1107 Weiner St, Lufkin, TX 75904":
+            print(f"DEBUG: Exact Lufkin depot match")
+            return (31.3382, -94.7291)
+        
+        csv_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'customer_data_582.csv')
+        if os.path.exists(csv_path):
+            try:
+                with open(csv_path, 'r') as f:
+                    reader = csv.DictReader(f)
+                    for row in reader:
+                        csv_address = row['Address']
+                        if csv_address == address and row['Latitude'] and row['Longitude']:
+                            lat = float(row['Latitude'])
+                            lng = float(row['Longitude'])
+                            print(f"DEBUG: Found exact CSV match: ({lat}, {lng})")
+                            return (lat, lng)
+                        
+                        normalized_csv_1 = csv_address.strip().lower()
+                        normalized_csv_2 = csv_address.replace('  ', ' ').strip().lower()
+                        
+                        normalized_input_1 = address.strip().lower()
+                        normalized_input_2 = address.replace(',', '').strip().lower()
+                        normalized_input_3 = address.replace('  ', ' ').strip().lower()
+                        
+                        if ((normalized_csv_1 == normalized_input_1 or 
+                             normalized_csv_1 == normalized_input_2 or
+                             normalized_csv_1 == normalized_input_3 or
+                             normalized_csv_2 == normalized_input_1 or
+                             normalized_csv_2 == normalized_input_2 or
+                             normalized_csv_2 == normalized_input_3) and 
+                            row['Latitude'] and row['Longitude']):
+                            lat = float(row['Latitude'])
+                            lng = float(row['Longitude'])
+                            print(f"DEBUG: Found normalized CSV match: ({lat}, {lng})")
+                            return (lat, lng)
+                
+                print(f"DEBUG: Address '{address}' not found in CSV file")
+            except Exception as e:
+                print(f"DEBUG: Error reading CSV: {e}")
+        else:
+            print(f"DEBUG: CSV file not found at: {csv_path}")
+        
+        print(f"DEBUG: Using fallback coordinates for: {address}")
+        return self._generate_realistic_coordinates(address)
