@@ -12,7 +12,7 @@ class GoogleMapsService:
         
     async def geocode_address(self, address: str) -> Tuple[float, float]:
         """Geocode an address to get latitude and longitude"""
-        return self._generate_realistic_coordinates(address)
+        return self._get_coordinates_from_csv(address)
     
     def _generate_realistic_coordinates(self, address: str) -> Tuple[float, float]:
         """Generate realistic coordinates using hash-based approach with depot-based distribution"""
@@ -211,3 +211,51 @@ class GoogleMapsService:
         origin_depot = self._get_depot_for_location(origin)
         dest_depot = self._get_depot_for_location(destination)
         return origin_depot != dest_depot
+    
+    def _get_coordinates_from_csv(self, address: str) -> Tuple[float, float]:
+        """Get coordinates from CSV data or fall back to depot coordinates"""
+        import csv
+        import os
+        
+        print(f"DEBUG: Geocoding address: {address}")
+        
+        if address == "1707 Smart Street, Leesville, LA 71446":
+            print(f"DEBUG: Exact Leesville depot match")
+            return (31.1435, -93.2607)
+        elif address == "220 Bunker Road, Lake Charles, LA 70615":
+            print(f"DEBUG: Exact Lake Charles depot match")
+            return (30.2266, -93.2174)
+        elif address == "1107 Weiner St, Lufkin, TX 75904":
+            print(f"DEBUG: Exact Lufkin depot match")
+            return (31.3382, -94.7291)
+        
+        csv_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'customer_data_582.csv')
+        if os.path.exists(csv_path):
+            try:
+                with open(csv_path, 'r') as f:
+                    reader = csv.DictReader(f)
+                    for row in reader:
+                        csv_address = row['Address']
+                        if csv_address == address and row['Latitude'] and row['Longitude']:
+                            lat = float(row['Latitude'])
+                            lng = float(row['Longitude'])
+                            print(f"DEBUG: Found exact CSV match: ({lat}, {lng})")
+                            return (lat, lng)
+                        
+                        normalized_csv = csv_address.replace('  ', ' ').strip()
+                        normalized_input = address.replace(',', '').replace('  ', ' ').strip()
+                        
+                        if normalized_csv.lower() == normalized_input.lower() and row['Latitude'] and row['Longitude']:
+                            lat = float(row['Latitude'])
+                            lng = float(row['Longitude'])
+                            print(f"DEBUG: Found normalized CSV match: ({lat}, {lng})")
+                            return (lat, lng)
+                
+                print(f"DEBUG: Address '{address}' not found in CSV file")
+            except Exception as e:
+                print(f"DEBUG: Error reading CSV: {e}")
+        else:
+            print(f"DEBUG: CSV file not found at: {csv_path}")
+        
+        print(f"DEBUG: Using fallback coordinates for: {address}")
+        return self._generate_realistic_coordinates(address)
