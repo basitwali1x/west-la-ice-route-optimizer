@@ -10,7 +10,7 @@ import GoogleMap from './components/GoogleMap.tsx';
 import { GoogleSheetsSync } from './components/GoogleSheetsSync';
 import { DriverDashboard } from './components/DriverDashboard';
 import { WeeklyVisitDashboard } from './components/WeeklyVisitDashboard';
-import { api } from './services/api';
+import { api, optimizeCompleteWeeklyRoutes } from './services/api';
 import { Customer, RouteOptimizationResponse } from './types';
 
 function App() {
@@ -202,6 +202,108 @@ function App() {
       setOptimizationComplete(false);
       setError('Failed to optimize routes. Please try again.');
       console.error('Error optimizing routes:', err);
+    } finally {
+      setIsOptimizing(false);
+    }
+  };
+
+  const optimizeWeeklyRoutes = async () => {
+    if (customers.length === 0) return;
+
+    let progressInterval: NodeJS.Timeout | null = null;
+
+    try {
+      setIsOptimizing(true);
+      setProgress(0);
+      setError(null);
+      setStartTime(new Date());
+
+      const depots = ['Leesville', 'Lake Charles', 'Lufkin'];
+      let currentDepot = 0;
+      
+      progressInterval = setInterval(() => {
+        setProgress(prev => {
+          if (prev < 85) {
+            const depotName = depots[currentDepot % depots.length];
+            setDepotProgress(prevDepot => ({
+              ...prevDepot,
+              [depotName]: Math.min((prevDepot[depotName] || 0) + 15, 100)
+            }));
+            
+            if (prev % 25 === 0) currentDepot++;
+            return prev + 5;
+          }
+          if (prev < 98) return prev + 1;
+          return prev;
+        });
+      }, 300);
+
+      const result = await optimizeCompleteWeeklyRoutes({
+        customers,
+        num_vehicles: numVehicles,
+        depot_addresses: [
+          "1707 Smart Street, Leesville, LA 71446",
+          "220 Bunker Road, Lake Charles, LA 70615", 
+          "1107 Weiner St, Lufkin, TX 75904"
+        ],
+        vehicle_distribution: vehicleDistribution
+      });
+
+      console.log('Weekly optimization result received:', result);
+
+      if (progressInterval) {
+        clearInterval(progressInterval);
+        progressInterval = null;
+      }
+      
+      setProgress(98);
+      
+      setTimeout(async () => {
+        try {
+          const status = await api.verifyCompletion();
+          if (status.complete) {
+            setProgress(100);
+            setDepotProgress({
+              'Leesville': 100,
+              'Lake Charles': 100,
+              'Lufkin': 100
+            });
+            setOptimizationComplete(true);
+            setOptimizationResult(result);
+          }
+        } catch (error) {
+          console.error('Failed to verify completion:', error);
+          setProgress(100);
+          setDepotProgress({
+            'Leesville': 100,
+            'Lake Charles': 100,
+            'Lufkin': 100
+          });
+          setOptimizationComplete(true);
+          setOptimizationResult(result);
+        }
+      }, 500);
+      
+      setTimeout(() => {
+        setOptimizationComplete(false);
+      }, 2000);
+      
+      setTimeout(() => {
+        setProgress(0);
+        setDepotProgress({});
+        setOptimizationComplete(false);
+      }, 3000);
+      
+    } catch (err) {
+      if (progressInterval) {
+        clearInterval(progressInterval);
+        progressInterval = null;
+      }
+      setProgress(0);
+      setDepotProgress({});
+      setOptimizationComplete(false);
+      setError('Failed to optimize weekly routes. Please try again.');
+      console.error('Error optimizing weekly routes:', err);
     } finally {
       setIsOptimizing(false);
     }
@@ -463,23 +565,44 @@ function App() {
               </div>
             )}
 
-            <Button 
-              onClick={optimizeRoutes} 
-              disabled={isOptimizing || customers.length === 0}
-              className="w-full"
-            >
-              {isOptimizing ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Optimizing Routes...
-                </>
-              ) : (
-                <>
-                  <Play className="mr-2 h-4 w-4" />
-                  Optimize Routes
-                </>
-              )}
-            </Button>
+            <div className="space-y-3">
+              <Button 
+                onClick={optimizeRoutes} 
+                disabled={isOptimizing || customers.length === 0}
+                className="w-full"
+              >
+                {isOptimizing ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Optimizing Routes...
+                  </>
+                ) : (
+                  <>
+                    <Play className="mr-2 h-4 w-4" />
+                    Optimize Routes
+                  </>
+                )}
+              </Button>
+              
+              <Button 
+                onClick={optimizeWeeklyRoutes} 
+                disabled={isOptimizing || customers.length === 0}
+                className="w-full"
+                variant="outline"
+              >
+                {isOptimizing ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Optimizing Weekly Routes...
+                  </>
+                ) : (
+                  <>
+                    <Play className="mr-2 h-4 w-4" />
+                    Optimize Weekly Routes
+                  </>
+                )}
+              </Button>
+            </div>
           </CardContent>
         </Card>
 
@@ -590,61 +713,91 @@ function App() {
 
             <TabsContent value="routes">
               <div className="grid gap-6">
-                {optimizationResult.routes.map((route) => (
-                  <Card key={route.vehicle_id}>
-                    <CardHeader>
-                      <div className="flex items-center justify-between">
-                        <CardTitle className="flex items-center">
-                          <Truck className="mr-2 h-5 w-5" />
-                          Vehicle {route.vehicle_id} - {route.depot_name}
-                        </CardTitle>
-                        <div className="flex space-x-2">
-                          <Badge variant="secondary">
-                            {route.route_points.length} stops
-                          </Badge>
-                          <Badge variant="outline">
-                            {route.total_distance_miles} mi
-                          </Badge>
-                          <Badge variant="outline">
-                            {Math.round(route.total_time_minutes / 60)}h {Math.round(route.total_time_minutes % 60)}m
-                          </Badge>
-                          {route.compliance?.DOT_hours === false && (
-                            <Badge variant="destructive">⚠️ Exceeds 10h</Badge>
-                          )}
-                          {route.violations && route.violations.length > 0 && (
-                            <Badge variant="destructive">{route.violations.length} violations</Badge>
-                          )}
-                        </div>
-                      </div>
-                    </CardHeader>
-                    <CardContent>
-                      {route.violations && route.violations.length > 0 && (
-                        <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded">
-                          <h4 className="text-sm font-medium text-red-800 mb-2">Constraint Violations:</h4>
-                          <ul className="text-sm text-red-700 space-y-1">
-                            {route.violations.map((violation, idx) => (
-                              <li key={idx}>• {violation}</li>
-                            ))}
-                          </ul>
-                        </div>
-                      )}
-                      <div className="space-y-2">
-                        {route.route_points.map((point, index) => (
-                          <div key={point.customer_id} className="flex items-center space-x-3 p-2 bg-gray-50 rounded">
-                            <div className="flex-shrink-0 w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center text-sm font-medium">
-                              {index + 1}
-                            </div>
-                            <div className="flex-1">
-                              <p className="font-medium">{point.customer_name}</p>
-                              <p className="text-sm text-gray-600">{point.address}</p>
-                            </div>
-                            <MapPin className="h-4 w-4 text-gray-400" />
+                {(() => {
+                  const routesByDay = optimizationResult.routes.reduce((acc, route) => {
+                    const day = route.day || 'Unassigned';
+                    if (!acc[day]) acc[day] = [];
+                    acc[day].push(route);
+                    return acc;
+                  }, {} as Record<string, typeof optimizationResult.routes>);
+
+                  const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Unassigned'];
+                  
+                  return days.map(day => {
+                    const dayRoutes = routesByDay[day];
+                    if (!dayRoutes || dayRoutes.length === 0) return null;
+                    
+                    const totalCustomers = dayRoutes.reduce((sum, route) => sum + route.route_points.length, 0);
+                    
+                    return (
+                      <div key={day} className="space-y-4">
+                        <div className="flex items-center justify-between p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                          <h3 className="text-xl font-semibold text-blue-900">{day}</h3>
+                          <div className="flex space-x-3">
+                            <Badge variant="secondary">{dayRoutes.length} routes</Badge>
+                            <Badge variant="outline">{totalCustomers} customers</Badge>
                           </div>
+                        </div>
+                        
+                        {dayRoutes.map((route) => (
+                          <Card key={`${day}-${route.vehicle_id}`}>
+                            <CardHeader>
+                              <div className="flex items-center justify-between">
+                                <CardTitle className="flex items-center">
+                                  <Truck className="mr-2 h-5 w-5" />
+                                  Vehicle {route.vehicle_id} - {route.depot_name}
+                                </CardTitle>
+                                <div className="flex space-x-2">
+                                  <Badge variant="secondary">
+                                    {route.route_points.length} stops
+                                  </Badge>
+                                  <Badge variant="outline">
+                                    {route.total_distance_miles} mi
+                                  </Badge>
+                                  <Badge variant="outline">
+                                    {Math.round(route.total_time_minutes / 60)}h {Math.round(route.total_time_minutes % 60)}m
+                                  </Badge>
+                                  {route.compliance?.DOT_hours === false && (
+                                    <Badge variant="destructive">⚠️ Exceeds 10h</Badge>
+                                  )}
+                                  {route.violations && route.violations.length > 0 && (
+                                    <Badge variant="destructive">{route.violations.length} violations</Badge>
+                                  )}
+                                </div>
+                              </div>
+                            </CardHeader>
+                            <CardContent>
+                              {route.violations && route.violations.length > 0 && (
+                                <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded">
+                                  <h4 className="text-sm font-medium text-red-800 mb-2">Constraint Violations:</h4>
+                                  <ul className="text-sm text-red-700 space-y-1">
+                                    {route.violations.map((violation, idx) => (
+                                      <li key={idx}>• {violation}</li>
+                                    ))}
+                                  </ul>
+                                </div>
+                              )}
+                              <div className="space-y-2">
+                                {route.route_points.map((point, index) => (
+                                  <div key={point.customer_id} className="flex items-center space-x-3 p-2 bg-gray-50 rounded">
+                                    <div className="flex-shrink-0 w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center text-sm font-medium">
+                                      {index + 1}
+                                    </div>
+                                    <div className="flex-1">
+                                      <p className="font-medium">{point.customer_name}</p>
+                                      <p className="text-sm text-gray-600">{point.address}</p>
+                                    </div>
+                                    <MapPin className="h-4 w-4 text-gray-400" />
+                                  </div>
+                                ))}
+                              </div>
+                            </CardContent>
+                          </Card>
                         ))}
                       </div>
-                    </CardContent>
-                  </Card>
-                ))}
+                    );
+                  }).filter(Boolean);
+                })()}
               </div>
             </TabsContent>
             </>

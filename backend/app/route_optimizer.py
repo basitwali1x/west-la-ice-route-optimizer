@@ -142,6 +142,39 @@ class RouteOptimizer:
         
         return await self.optimize_routes(unvisited_customers, depot_addresses, num_vehicles, vehicle_distribution)
     
+    async def optimize_complete_weekly_routes(self, customers: List[Customer], depot_addresses: List[str], num_vehicles: int = 8, vehicle_distribution: Optional[Dict[str, int]] = None) -> List[VehicleRoute]:
+        """Optimize routes grouped by days (Monday-Friday) with ~116 customers per day"""
+        days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"]
+        customers_per_day = len(customers) // len(days)
+        
+        all_routes = []
+        
+        for day_index, day in enumerate(days):
+            start_index = day_index * customers_per_day
+            if day_index == len(days) - 1:
+                day_customers = customers[start_index:]
+            else:
+                end_index = start_index + customers_per_day
+                day_customers = customers[start_index:end_index]
+            
+            for customer in day_customers:
+                customer.day = day
+            
+            current_assignments = {"Lufkin": 0, "Leesville": 0, "Lake Charles": 0}
+            for customer in day_customers:
+                assigned_depot = self.assign_depot_with_capacity(customer, current_assignments)
+                customer.depot = assigned_depot
+                current_assignments[assigned_depot] += 1
+            
+            day_routes = await self.optimize_routes(day_customers, depot_addresses, num_vehicles, vehicle_distribution)
+            
+            for route in day_routes:
+                route.day = day
+            
+            all_routes.extend(day_routes)
+        
+        return all_routes
+    
     async def optimize_routes(self, customers: List[Customer], depot_addresses: List[str], num_vehicles: int = 8, vehicle_distribution: Optional[Dict[str, int]] = None) -> List[VehicleRoute]:
         """Optimize routes using OR-Tools with Google Maps distance data"""
         
