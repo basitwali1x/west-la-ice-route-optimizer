@@ -10,7 +10,7 @@ import GoogleMap from './components/GoogleMap.tsx';
 import { GoogleSheetsSync } from './components/GoogleSheetsSync';
 import { DriverDashboard } from './components/DriverDashboard';
 import { WeeklyVisitDashboard } from './components/WeeklyVisitDashboard';
-import { api, optimizeCompleteWeeklyRoutes } from './services/api';
+import { api } from './services/api';
 import { Customer, RouteOptimizationResponse } from './types';
 
 function App() {
@@ -183,13 +183,16 @@ function App() {
       }, 500);
       
       setTimeout(() => {
+        console.log('Resetting optimizationComplete after 2 seconds');
         setOptimizationComplete(false);
       }, 2000);
       
       setTimeout(() => {
+        console.log('Resetting all states after 3 seconds, setting isOptimizing to false');
         setProgress(0);
         setDepotProgress({});
         setOptimizationComplete(false);
+        setIsOptimizing(false);
       }, 3000);
       
     } catch (err) {
@@ -202,8 +205,8 @@ function App() {
       setOptimizationComplete(false);
       setError('Failed to optimize routes. Please try again.');
       console.error('Error optimizing routes:', err);
-    } finally {
       setIsOptimizing(false);
+    } finally {
     }
   };
 
@@ -211,12 +214,24 @@ function App() {
     if (customers.length === 0) return;
 
     let progressInterval: NodeJS.Timeout | null = null;
+    let failsafeTimeout: NodeJS.Timeout | null = null;
 
     try {
       setIsOptimizing(true);
       setProgress(0);
       setError(null);
       setStartTime(new Date());
+
+      failsafeTimeout = setTimeout(() => {
+        console.log('Failsafe timeout triggered - resetting isOptimizing state');
+        setIsOptimizing(false);
+        setProgress(0);
+        setDepotProgress({});
+        setError('Optimization timed out. Please try again.');
+        if (progressInterval) {
+          clearInterval(progressInterval);
+        }
+      }, 120000); // 2 minutes
 
       const depots = ['Leesville', 'Lake Charles', 'Lufkin'];
       let currentDepot = 0;
@@ -238,16 +253,26 @@ function App() {
         });
       }, 300);
 
-      const result = await optimizeCompleteWeeklyRoutes({
-        customers,
-        num_vehicles: numVehicles,
-        depot_addresses: [
-          "1707 Smart Street, Leesville, LA 71446",
-          "220 Bunker Road, Lake Charles, LA 70615", 
-          "1107 Weiner St, Lufkin, TX 75904"
-        ],
-        vehicle_distribution: vehicleDistribution
-      });
+      console.log('Calling API optimizeRoutes with:', { customers: customers.length, vehicleDistribution });
+      let result;
+      try {
+        result = await api.optimizeRoutes({
+          customers,
+          num_vehicles: numVehicles,
+          depot_addresses: [
+            "1707 Smart Street, Leesville, LA 71446",
+            "220 Bunker Road, Lake Charles, LA 70615", 
+            "1107 Weiner St, Lufkin, TX 75904"
+          ],
+          vehicle_distribution: vehicleDistribution
+        });
+        console.log('API call completed successfully, result:', result);
+        console.log('Result type:', typeof result, 'Result keys:', Object.keys(result || {}));
+      } catch (apiError) {
+        console.error('API call failed:', apiError);
+        throw apiError;
+      }
+      console.log('About to set up timeouts for state reset');
 
       console.log('Weekly optimization result received:', result);
 
@@ -285,26 +310,34 @@ function App() {
       }, 500);
       
       setTimeout(() => {
+        console.log('Resetting optimizationComplete after 2 seconds');
         setOptimizationComplete(false);
       }, 2000);
       
       setTimeout(() => {
+        console.log('Resetting all states after 3 seconds, setting isOptimizing to false');
         setProgress(0);
         setDepotProgress({});
         setOptimizationComplete(false);
+        setIsOptimizing(false);
+        if (failsafeTimeout) {
+          clearTimeout(failsafeTimeout);
+        }
       }, 3000);
       
     } catch (err) {
+      console.error('Error in optimizeWeeklyRoutes:', err);
       if (progressInterval) {
         clearInterval(progressInterval);
         progressInterval = null;
+      }
+      if (failsafeTimeout) {
+        clearTimeout(failsafeTimeout);
       }
       setProgress(0);
       setDepotProgress({});
       setOptimizationComplete(false);
       setError('Failed to optimize weekly routes. Please try again.');
-      console.error('Error optimizing weekly routes:', err);
-    } finally {
       setIsOptimizing(false);
     }
   };
