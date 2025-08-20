@@ -195,13 +195,13 @@ function App() {
             const depotName = depots[currentDepot % depots.length];
             setDepotProgress(prevDepot => ({
               ...prevDepot,
-              [depotName]: Math.min((prevDepot[depotName] || 0) + 15, 100)
+              [depotName]: Math.min((prevDepot[depotName] || 0) + 15, 90)
             }));
             
             if (prev % 25 === 0) currentDepot++;
             return prev + 5;
           }
-          if (prev < 98) return prev + 1;
+          if (prev < 90) return prev + 1;
           return prev;
         });
       }, 300);
@@ -248,10 +248,8 @@ function App() {
       setOptimizationResult(result);
       
       console.log('Immediately resetting isOptimizing state to prevent UI lock');
-      setTimeout(() => {
-        setIsOptimizing(false);
-        console.log('isOptimizing state reset to false');
-      }, 500);
+      setIsOptimizing(false);
+      console.log('isOptimizing state reset to false');
       
       setTimeout(() => {
         console.log('Cleaning up completion state');
