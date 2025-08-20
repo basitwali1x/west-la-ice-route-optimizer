@@ -145,27 +145,8 @@ class GoogleMapsService:
         
         coords = []
         for i, location in enumerate(locations):
-            if location == "1707 Smart Street, Leesville, LA 71446":
-                coords.append((31.1435, -93.2607))
-            elif location == "220 Bunker Road, Lake Charles, LA 70615":
-                coords.append((30.2266, -93.2174))
-            elif location == "1107 Weiner St, Lufkin, TX 75904":
-                coords.append((31.3382, -94.7291))
-            else:
-                import hashlib
-                hash_val = int(hashlib.md5(location.encode()).hexdigest()[:8], 16)
-                
-                if "Lufkin" in location or ("TX" in location and ("Lufkin" in location or "Huntington" in location or "Zavalla" in location or "Ratcliff" in location)):
-                    base_lat, base_lng = 31.3382, -94.7291
-                elif "Lake Charles" in location or "LA 706" in location:
-                    base_lat, base_lng = 30.2266, -93.2174
-                else:
-                    base_lat, base_lng = 31.1435, -93.2607
-                
-                lat_variation = ((hash_val % 1000) / 1000.0 - 0.5) * 0.08
-                lng_variation = (((hash_val >> 10) % 1000) / 1000.0 - 0.5) * 0.08
-                
-                coords.append((base_lat + lat_variation, base_lng + lng_variation))
+            lat, lng = self._get_coordinates_from_csv(location)
+            coords.append((lat, lng))
         
         for i in range(n):
             for j in range(n):
