@@ -31,27 +31,27 @@ DEPOT_CONSTRAINTS = {
         "max_stops_monday": 15, 
         "max_hours": 10,
         "weekly_capacity": 192,  # Weekly customer limit for balanced distribution
-        "lat_range": (30.50, 32.00),
-        "lng_range": (-95.50, -93.50),
-        "cities": ["Lufkin", "Nacogdoches", "Diboll", "Huntington", "Jasper", "Zavalla", "Ratcliff"]
+        "lat_range": (31.20, 32.80),  # Updated to match actual customer range (31.30-32.70) + buffer
+        "lng_range": (-95.80, -94.00),  # Updated to match actual customer range (-95.66 to -94.05) + buffer
+        "cities": ["Lufkin", "Nacogdoches", "Diboll", "Huntington", "Jasper", "Zavalla", "Ratcliff", "Palestine", "Jacksonville", "Beckville", "Marshall", "Carthage", "Tatum", "Kilgore", "White Oak", "Henderson", "Gladewater", "Longview", "Hallsville"]
     },
     "Lake Charles": {
         "max_distance": 75, 
         "max_stops": 15, 
         "max_hours": 10,
         "weekly_capacity": 189,  # Weekly customer limit for balanced distribution
-        "lat_range": (29.90, 30.50), 
-        "lng_range": (-93.80, -92.90),
-        "cities": ["Lake Charles", "Sulphur", "Vinton", "Iowa"]
+        "lat_range": (29.80, 30.60),  # Updated to match actual customer range (29.86-30.56) + buffer
+        "lng_range": (-94.40, -91.70),  # Updated to match actual customer range (-94.32 to -91.79) + buffer
+        "cities": ["Lake Charles", "Sulphur", "Vinton", "Iowa", "Beaumont"]
     },
     "Leesville": {
         "max_distance": 100, 
         "max_stops": 15, 
         "max_hours": 10,
         "weekly_capacity": 190,  # Weekly customer limit for balanced distribution
-        "lat_range": (30.80, 31.50),
-        "lng_range": (-93.80, -92.50),
-        "cities": ["Leesville", "DeRidder", "Rosepine", "Fort Polk"]
+        "lat_range": (30.60, 32.40),  # Updated to match actual customer range (30.73-32.27) + buffer
+        "lng_range": (-93.80, -92.30),  # Updated to match actual customer range (-93.73 to -92.40) + buffer
+        "cities": ["Leesville", "DeRidder", "Rosepine", "Fort Polk", "Converse", "Fisher", "Zwolle", "Pleasant Hill", "Many", "Pineville", "Merryville", "Mansfield", "Hornbeck", "Florien", "Jonesboro", "Alexandria", "Natchitoches", "Robeline", "Dodson"]
     }
 }
 

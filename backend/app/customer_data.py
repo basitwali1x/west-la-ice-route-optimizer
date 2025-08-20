@@ -8,11 +8,60 @@ import random
 
 def load_west_la_ice_customers() -> List[Customer]:
     """
-    Load West LA Ice customers using hybrid approach:
-    - Excel file for real business names
-    - Google Sheets for coordinates
+    Load West LA Ice customers from CSV file with coordinates
     """
-    print(f"Loading customers with hybrid approach, DEFAULT_SHEET_ID: {os.getenv('DEFAULT_SHEET_ID')}")
+    print(f"Loading customers from CSV file with coordinates")
+    
+    # First try to load from CSV file with coordinates
+    csv_path = os.path.join(os.path.dirname(__file__), '..', 'customer_data_582.csv')
+    
+    if os.path.exists(csv_path):
+        try:
+            df = pd.read_csv(csv_path)
+            print(f"CSV file loaded with {len(df)} rows")
+            
+            customers = []
+            for i, row in df.iterrows():
+                try:
+                    customer_id = row['Customer']
+                    address = row['Address']
+                    depot = row['Depot_Assignment']
+                    latitude = float(row['Latitude'])
+                    longitude = float(row['Longitude'])
+                    
+                    last_visit = datetime.now() - timedelta(days=random.randint(0, 10))
+                    days_since = (datetime.now() - last_visit).days
+                    
+                    customer = Customer(
+                        id=i + 1,
+                        name=customer_id,
+                        address=address,
+                        depot=depot,
+                        truck=f"Truck {(i % 8) + 1}",
+                        day="Monday",
+                        phone="",
+                        last_visit_date=last_visit,
+                        visited_this_week=random.choice([True, False]),
+                        days_since_last_visit=days_since,
+                        priority_level="URGENT" if days_since > 7 else "HIGH" if days_since > 5 else "STANDARD",
+                        weekly_visit_required=True,
+                        latitude=latitude,
+                        longitude=longitude
+                    )
+                    customers.append(customer)
+                    
+                except Exception as e:
+                    print(f'Error creating customer from CSV row {i}: {e}')
+                    continue
+            
+            print(f"Created {len(customers)} customers from CSV with coordinates")
+            if customers:
+                return customers
+                
+        except Exception as e:
+            print(f'Error loading CSV file: {e}')
+    
+    print(f"Falling back to hybrid approach, DEFAULT_SHEET_ID: {os.getenv('DEFAULT_SHEET_ID')}")
     
     excel_customers = []
     excel_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'deinjjee.xlsx')
@@ -117,7 +166,9 @@ def load_west_la_ice_customers() -> List[Customer]:
                 visited_this_week=random.choice([True, False]),
                 days_since_last_visit=days_since,
                 priority_level="URGENT" if days_since > 7 else "HIGH" if days_since > 5 else "STANDARD",
-                weekly_visit_required=True
+                weekly_visit_required=True,
+                latitude=latitude,
+                longitude=longitude
             )
             customers.append(customer)
             
