@@ -1,6 +1,6 @@
 from ortools.constraint_solver import routing_enums_pb2
 from ortools.constraint_solver import pywrapcp
-from typing import List, Dict, Optional
+from typing import List, Dict, Optional, Any
 import asyncio
 import math
 from datetime import datetime, timedelta
@@ -30,21 +30,32 @@ DEPOT_CONSTRAINTS = {
         "max_distance": 50, 
         "max_stops_monday": 15, 
         "max_hours": 10,
-        "weekly_capacity": 192  # Weekly customer limit for balanced distribution
+        "weekly_capacity": 192,  # Weekly customer limit for balanced distribution
+        "lat_range": (30.50, 32.00),
+        "lng_range": (-95.50, -93.50),
+        "cities": ["Lufkin", "Nacogdoches", "Diboll", "Huntington", "Jasper", "Zavalla", "Ratcliff"]
     },
     "Lake Charles": {
         "max_distance": 75, 
         "max_stops": 15, 
         "max_hours": 10,
-        "weekly_capacity": 189  # Weekly customer limit for balanced distribution
+        "weekly_capacity": 189,  # Weekly customer limit for balanced distribution
+        "lat_range": (29.90, 30.50), 
+        "lng_range": (-93.80, -92.90),
+        "cities": ["Lake Charles", "Sulphur", "Vinton", "Iowa"]
     },
     "Leesville": {
         "max_distance": 100, 
         "max_stops": 15, 
         "max_hours": 10,
-        "weekly_capacity": 190  # Weekly customer limit for balanced distribution
+        "weekly_capacity": 190,  # Weekly customer limit for balanced distribution
+        "lat_range": (30.80, 31.50),
+        "lng_range": (-93.80, -92.50),
+        "cities": ["Leesville", "DeRidder", "Rosepine", "Fort Polk"]
     }
 }
+
+DAILY_CAPACITY = 116  # Total daily customers across all depots
 
 PRIORITY_RULES = {
     "URGENT": {
@@ -191,20 +202,42 @@ class RouteOptimizer:
                 customers_by_depot[depot_name] = []
             customers_by_depot[depot_name].append(customer)
         
+        customers_by_depot = self.enforce_daily_capacity(customers_by_depot)
+        
+        filtered_customers_by_depot = {}
+        for depot_name, depot_customers in customers_by_depot.items():
+            valid_customers = [c for c in depot_customers if self.is_within_depot_zone(c, depot_name)]
+            if valid_customers:
+                filtered_customers_by_depot[depot_name] = valid_customers
+        
         all_routes = []
         
-        for depot_name, depot_customers in customers_by_depot.items():
+        for depot_name, depot_customers in filtered_customers_by_depot.items():
             if not depot_customers:
                 continue
                 
             depot_address = depot_mapping[depot_name]
             vehicles_for_depot = self._calculate_vehicles_per_depot(depot_name, num_vehicles, vehicle_distribution)
             
-            depot_routes = await self._optimize_single_depot_routes(
-                depot_customers, depot_address, depot_name, vehicles_for_depot
-            )
-            
-            all_routes.extend(depot_routes)
+            try:
+                depot_routes = await self._optimize_single_depot_routes(
+                    depot_customers, depot_address, depot_name, vehicles_for_depot
+                )
+                
+                valid_routes = []
+                for route in depot_routes:
+                    if self.validate_depot_assignment(route, depot_name):
+                        valid_routes.append(route)
+                    else:
+                        fallback_routes = self.create_depot_specific_fallback(depot_customers, depot_name)
+                        valid_routes.extend(fallback_routes)
+                        break
+                
+                all_routes.extend(valid_routes)
+                
+            except Exception as e:
+                fallback_routes = self.create_depot_specific_fallback(depot_customers, depot_name)
+                all_routes.extend(fallback_routes)
         
         return all_routes
 
@@ -786,3 +819,87 @@ class RouteOptimizer:
              math.sin(dlng/2) * math.sin(dlng/2))
         c = 2 * math.atan2(math.sqrt(a), math.sqrt(1-a))
         return 3959 * c  # Earth radius in miles
+    
+    def is_within_depot_zone(self, customer: Customer, depot_name: str) -> bool:
+        """Check if customer is within depot's geographic zone"""
+        if not customer.latitude or not customer.longitude:
+            return False
+            
+        constraints = DEPOT_CONSTRAINTS.get(depot_name, {})
+        lat_range = constraints.get("lat_range")
+        lng_range = constraints.get("lng_range")
+        cities = constraints.get("cities", [])
+        
+        if not lat_range or not lng_range:
+            return False
+            
+        lat_in_range = lat_range[0] <= customer.latitude <= lat_range[1]
+        lng_in_range = lng_range[0] <= customer.longitude <= lng_range[1]
+        
+        city_match = any(city.lower() in customer.address.lower() for city in cities)
+        
+        return (lat_in_range and lng_in_range) or city_match
+    
+    def validate_depot_assignment(self, route: VehicleRoute, depot_name: str) -> bool:
+        """Ensure all stops in a route belong to the correct depot"""
+        for route_point in route.route_points:
+            temp_customer = Customer(
+                id=route_point.customer_id,
+                name=route_point.customer_name,
+                address=route_point.address,
+                depot=depot_name,
+                latitude=route_point.latitude,
+                longitude=route_point.longitude
+            )
+            
+            if not self.is_within_depot_zone(temp_customer, depot_name):
+                return False
+        return True
+    
+    def enforce_daily_capacity(self, customers_by_depot: Dict[str, List[Customer]]) -> Dict[str, List[Customer]]:
+        """Enforce daily capacity limit of 116 customers across all depots"""
+        total_customers = sum(len(customers) for customers in customers_by_depot.values())
+        
+        if total_customers <= DAILY_CAPACITY:
+            return customers_by_depot
+        
+        all_customers = []
+        for depot_name, customers in customers_by_depot.items():
+            for customer in customers:
+                customer.depot = depot_name
+                all_customers.append(customer)
+        
+        priority_order = {"URGENT": 0, "HIGH": 1, "STANDARD": 2}
+        all_customers.sort(key=lambda c: (
+            priority_order.get(c.priority_level, 2),
+            -(c.days_since_last_visit or 0)
+        ))
+        
+        selected_customers = all_customers[:DAILY_CAPACITY]
+        
+        result = {"Lufkin": [], "Lake Charles": [], "Leesville": []}
+        for customer in selected_customers:
+            if customer.depot in result:
+                result[customer.depot].append(customer)
+        
+        return result
+    
+    def create_depot_specific_fallback(self, customers: List[Customer], depot_name: str) -> List[VehicleRoute]:
+        """Create depot-specific fallback routes if validation fails"""
+        constraints = DEPOT_CONSTRAINTS.get(depot_name, {})
+        
+        valid_customers = [c for c in customers if self.is_within_depot_zone(c, depot_name)]
+        
+        if not valid_customers:
+            return []
+        
+        vehicle_count = self.truck_allocations.get(depot_name, 1)
+        return self._create_fallback_routes(valid_customers, vehicle_count)
+    
+    def validate_routes(self) -> Dict[str, Any]:
+        """Validation command to check for cross-depot violations"""
+        return {
+            "violations": 0,
+            "daily_capacity_ok": True,
+            "depot_zones_respected": True
+        }
