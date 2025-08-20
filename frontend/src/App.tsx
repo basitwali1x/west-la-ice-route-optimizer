@@ -281,48 +281,30 @@ function App() {
         progressInterval = null;
       }
       
-      setProgress(98);
+      if (failsafeTimeout) {
+        clearTimeout(failsafeTimeout);
+      }
       
-      setTimeout(async () => {
-        try {
-          const status = await api.verifyCompletion();
-          if (status.complete) {
-            setProgress(100);
-            setDepotProgress({
-              'Leesville': 100,
-              'Lake Charles': 100,
-              'Lufkin': 100
-            });
-            setOptimizationComplete(true);
-            setOptimizationResult(result);
-          }
-        } catch (error) {
-          console.error('Failed to verify completion:', error);
-          setProgress(100);
-          setDepotProgress({
-            'Leesville': 100,
-            'Lake Charles': 100,
-            'Lufkin': 100
-          });
-          setOptimizationComplete(true);
-          setOptimizationResult(result);
-        }
+      setProgress(100);
+      setDepotProgress({
+        'Leesville': 100,
+        'Lake Charles': 100,
+        'Lufkin': 100
+      });
+      setOptimizationComplete(true);
+      setOptimizationResult(result);
+      
+      console.log('Immediately resetting isOptimizing state to prevent UI lock');
+      setTimeout(() => {
+        setIsOptimizing(false);
+        console.log('isOptimizing state reset to false');
       }, 500);
       
       setTimeout(() => {
-        console.log('Resetting optimizationComplete after 2 seconds');
+        console.log('Cleaning up completion state');
         setOptimizationComplete(false);
-      }, 2000);
-      
-      setTimeout(() => {
-        console.log('Resetting all states after 3 seconds, setting isOptimizing to false');
         setProgress(0);
         setDepotProgress({});
-        setOptimizationComplete(false);
-        setIsOptimizing(false);
-        if (failsafeTimeout) {
-          clearTimeout(failsafeTimeout);
-        }
       }, 3000);
       
     } catch (err) {
