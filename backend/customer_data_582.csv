@@ -1,0 +1,582 @@
+Customer,Address,Depot_Assignment,Latitude,Longitude
+ST001,5398 Rivera Ave  Hallsville  TX 79216,Lufkin,32.5232,-94.5913
+ST002,3072 Church St  Nacogdoches  TX 77729,Lufkin,31.6077,-94.6279
+ST003,8058 Howard Ave  Kilgore  TX 78919,Lufkin,32.4152,-94.8764
+ST004,7893 Miller St  Lufkin  TX 76447,Lufkin,31.3126,-94.7545
+ST005,2781 Jackson Blvd  Tatum  TX 76723,Lufkin,32.3389,-94.5213
+ST006,4369 Price St  Hallsville  TX 77979,Lufkin,32.4755,-94.5456
+ST007,6060 Gonzalez Ave  Palestine  TX 77464,Lufkin,31.7322,-95.6542
+ST008,2330 Ward Rd  Jacksonville  TX 77214,Lufkin,31.9827,-95.2437
+ST009,7529 Cooper Rd  Beckville  LA 78695,Lufkin,32.2226,-94.4635
+ST010,7077 Hill Dr  Palestine  TX 75459,Lufkin,31.7848,-95.6042
+ST011,7067 Howard Ave  Jacksonville  TX 75557,Lufkin,31.9729,-95.2576
+ST012,1517 Jackson Blvd  Lufkin  TX 77611,Lufkin,31.3167,-94.7196
+ST013,1244 Bell Rd  Lufkin  TX 79133,Lufkin,31.3297,-94.7028
+ST014,694 Foster Ave  Marshall  LA 74878,Lufkin,32.5436,-94.3609
+ST015,8423 Flores Ave  Longview  TX 76598,Lufkin,32.4833,-94.7545
+ST016,8698 Flores Ave  Carthage  LA 73458,Lufkin,32.1707,-94.3622
+ST017,8404 Church St  Carthage  LA 77326,Lufkin,32.14,-94.3258
+ST018,9122 Cook St  Tatum  TX 78475,Lufkin,32.3158,-94.5039
+ST019,6427 Watson St  Jacksonville  TX 78296,Lufkin,31.9595,-95.2714
+ST020,6711 Second St  Marshall  LA 74654,Lufkin,32.5393,-94.3472
+ST021,9772 Martinez St  Carthage  LA 77511,Lufkin,32.1793,-94.3164
+ST022,3355 Allen Dr  Kilgore  TX 76893,Lufkin,32.3711,-94.8667
+ST023,3231 Lee Rd  White Oak  TX 75174,Lufkin,32.5112,-94.8482
+ST024,6261 Baker St  White Oak  TX 78303,Lufkin,32.5111,-94.8867
+ST025,8046 Hernandez Ave  Beckville  LA 71875,Lufkin,32.2104,-94.4767
+ST026,1870 Elm Dr  Jacksonville  TX 79277,Lufkin,31.9413,-95.2889
+ST027,2716 Green Ave  Marshall  LA 71033,Lufkin,32.5276,-94.3711
+ST028,8413 Franklin St  Nacogdoches  TX 77917,Lufkin,31.591,-94.6277
+ST029,1907 Cook St  Palestine  TX 75145,Lufkin,31.7892,-95.639
+ST030,9616 Young St  Henderson  TX 75169,Lufkin,32.1724,-94.8024
+ST031,2431 Madison Dr  Nacogdoches  TX 77129,Lufkin,31.5896,-94.6443
+ST032,6412 Rogers Ave  Kilgore  TX 79604,Lufkin,32.3849,-94.8882
+ST033,6852 Cook St  Kilgore  TX 78114,Lufkin,32.4064,-94.8496
+ST034,3524 Hill Dr  Kilgore  TX 76938,Lufkin,32.3878,-94.866
+ST035,2911 Anderson Ave  Beckville  LA 74486,Lufkin,32.2339,-94.4307
+ST036,621 Hernandez Ave  Beckville  LA 76172,Lufkin,32.2598,-94.4292
+ST037,1209 Jefferson Rd  Gladewater  TX 76143,Lufkin,32.5091,-94.9672
+ST038,1076 Henderson Ave  Henderson  TX 78363,Lufkin,32.1454,-94.8028
+ST039,9418 Main St  Jacksonville  TX 79434,Lufkin,31.9785,-95.2756
+ST040,5773 Thomas Rd  Lufkin  TX 79132,Lufkin,31.3459,-94.7261
+ST041,9293 Price St  Beckville  LA 74779,Lufkin,32.2615,-94.4379
+ST042,5484 Gonzalez Ave  Longview  TX 79545,Lufkin,32.5148,-94.7436
+ST043,6220 Gray Ave  Nacogdoches  TX 76592,Lufkin,31.5975,-94.6411
+ST044,9699 Lincoln Ave  Beckville  LA 74196,Lufkin,32.228,-94.4817
+ST045,1787 Second St  Beckville  LA 74930,Lufkin,32.2147,-94.4549
+ST046,4511 Lincoln Ave  Marshall  LA 71110,Lufkin,32.547,-94.3419
+ST047,8029 Harris Dr  Palestine  TX 75466,Lufkin,31.756,-95.6582
+ST048,4892 Jenkins Dr  Jacksonville  TX 77122,Lufkin,31.9381,-95.2427
+ST049,6630 Maple Ave  Hallsville  TX 79318,Lufkin,32.5143,-94.604
+ST050,3606 Robinson Ave  Gladewater  TX 75946,Lufkin,32.5634,-94.9383
+ST051,1099 Scott St  White Oak  TX 75489,Lufkin,32.5498,-94.8943
+ST052,2333 Oak Ave  Kilgore  TX 78195,Lufkin,32.3916,-94.8586
+ST053,6264 White Ave  Marshall  LA 71299,Lufkin,32.5721,-94.3813
+ST054,4624 Turner Ave  Kilgore  TX 78837,Lufkin,32.3727,-94.8998
+ST055,9422 Edwards Dr  Palestine  TX 78139,Lufkin,31.7831,-95.6357
+ST056,298 Elm Dr  Longview  TX 79370,Lufkin,32.497,-94.7328
+ST057,8155 Park Ave  Palestine  TX 76311,Lufkin,31.7682,-95.6568
+ST058,3321 Davis Rd  Tatum  TX 75662,Lufkin,32.3266,-94.5253
+ST059,9229 Torres Dr  Diana  TX 78928,Lufkin,32.701,-94.7467
+ST060,6440 Powell Ave  Tatum  LA 76921,Lufkin,32.3362,-94.4909
+ST061,5393 Sanders Dr  Palestine  TX 78105,Lufkin,31.7899,-95.623
+ST062,5938 Turner Ave  Lufkin  TX 76280,Lufkin,31.3135,-94.7371
+ST063,5945 Nelson Dr  Beckville  LA 73950,Lufkin,32.2342,-94.4717
+ST064,1322 Howard Ave  White Oak  TX 77146,Lufkin,32.4973,-94.888
+ST065,174 Adams Ave  Longview  TX 75271,Lufkin,32.5037,-94.74
+ST066,6237 Jefferson Rd  Tatum  TX 79749,Lufkin,32.3448,-94.5282
+ST067,5154 Brooks Ave  Longview  TX 75723,Lufkin,32.5038,-94.7675
+ST068,8583 Kelly Rd  Tatum  TX 75191,Lufkin,32.2871,-94.5085
+ST069,1979 Adams Rd  Carthage  LA 76461,Lufkin,32.1325,-94.3218
+ST070,7795 Park Ave  Nacogdoches  TX 77308,Lufkin,31.609,-94.648
+ST071,2696 Peterson St  Carthage  LA 71308,Lufkin,32.1589,-94.3264
+ST072,4625 Long Rd  Henderson  TX 79397,Lufkin,32.1387,-94.8189
+ST073,4269 Washington Rd  Henderson  TX 79587,Lufkin,32.1744,-94.828
+ST074,3252 Mitchell Ave  Carthage  LA 70428,Lufkin,32.1345,-94.3544
+ST075,149 Madison Dr  Lufkin  TX 77313,Lufkin,31.3035,-94.7559
+ST076,1852 Taylor St  Kilgore  TX 78580,Lufkin,32.3841,-94.8572
+ST077,7231 Hernandez Ave  Jacksonville  TX 78793,Lufkin,31.95,-95.2413
+ST078,8247 Second St  Nacogdoches  TX 78098,Lufkin,31.5954,-94.6623
+ST079,5018 Elm Dr  Marshall  LA 77627,Lufkin,32.5746,-94.3458
+ST080,1065 Thompson Ave  Marshall  LA 73349,Lufkin,32.5173,-94.3401
+ST081,9590 Scott St  Tatum  TX 78798,Lufkin,32.3121,-94.5
+ST082,4002 Thomas Rd  Tatum  TX 77997,Lufkin,32.3431,-94.5169
+ST083,9354 Rodriguez St  Marshall  LA 79418,Lufkin,32.5517,-94.3521
+ST084,771 Maple Ave  Kilgore  TX 78416,Lufkin,32.3635,-94.8534
+ST085,1262 Murphy Dr  Carthage  LA 77031,Lufkin,32.1431,-94.3388
+ST086,7789 Butler Dr  Gladewater  TX 77619,Lufkin,32.5099,-94.9417
+ST087,3479 Jackson St  Palestine  TX 77048,Lufkin,31.7896,-95.6568
+ST088,4733 Ross St  Diana  TX 75975,Lufkin,32.7018,-94.703
+ST089,7424 Simmons St  Kilgore  TX 77055,Lufkin,32.3995,-94.899
+ST090,1395 Anderson Ave  Longview  TX 77628,Lufkin,32.4743,-94.7627
+ST091,2634 Perry St  Marshall  LA 73946,Lufkin,32.5617,-94.3773
+ST092,4873 Lincoln Ave  Jacksonville  TX 78804,Lufkin,31.9593,-95.2865
+ST093,5267 Washington Rd  Waskom  LA 70828,Lufkin,32.451,-94.0505
+ST094,8687 Simmons St  Longview  TX 78440,Lufkin,32.4801,-94.7461
+ST095,795 Powell Ave  Jacksonville  TX 78797,Lufkin,31.9868,-95.2633
+ST096,3501 Powell Ave  Kilgore  TX 76380,Lufkin,32.3814,-94.9007
+ST097,8366 Wilson Dr  Hallsville  TX 77081,Lufkin,32.5212,-94.5929
+ST098,9025 Campbell St  Diana  TX 76476,Lufkin,32.6951,-94.71
+ST099,5966 Howard Ave  Lufkin  TX 77960,Lufkin,31.3212,-94.7281
+ST100,4723 Howard Ave  Nacogdoches  TX 75749,Lufkin,31.6235,-94.6304
+ST101,4356 Lincoln Ave  Jacksonville  TX 76682,Lufkin,31.9922,-95.2957
+ST102,2199 Richardson Dr  Henderson  TX 78660,Lufkin,32.1665,-94.7829
+ST103,9584 Cox St  Jacksonville  TX 77141,Lufkin,31.9396,-95.2793
+ST104,4780 Garcia Rd  Gladewater  TX 79782,Lufkin,32.5188,-94.9616
+ST105,4500 Price St  Nacogdoches  TX 79977,Lufkin,31.6326,-94.6589
+ST106,5526 Hernandez Ave  Lufkin  TX 79603,Lufkin,31.3187,-94.717
+ST107,9277 Walker St  Hallsville  TX 77336,Lufkin,32.4954,-94.5768
+ST108,4500 Adams Ave  Diana  TX 75435,Lufkin,32.7016,-94.7186
+ST109,786 Washington St  Lufkin  TX 76129,Lufkin,31.3319,-94.7233
+ST110,7814 Elm Dr  Tatum  TX 78689,Lufkin,32.3042,-94.5188
+ST111,1789 Wright St  Lufkin  TX 76588,Lufkin,31.3086,-94.712
+ST112,105 Perez Rd  Diana  TX 79147,Lufkin,32.694,-94.6948
+ST113,4754 Hughes St  Diana  TX 77564,Lufkin,32.6915,-94.7458
+ST114,7766 White Ave  Kilgore  TX 76200,Lufkin,32.385,-94.8795
+ST115,4641 Powell Ave  Jacksonville  TX 76050,Lufkin,31.9433,-95.2616
+ST116,3392 Hughes St  Tatum  TX 77614,Lufkin,32.3095,-94.5485
+ST117,1444 Taylor St  Beckville  LA 73765,Lufkin,32.2189,-94.43
+ST118,7732 Martinez St  Tatum  TX 76475,Lufkin,32.3043,-94.537
+ST119,4092 Butler Dr  Kilgore  TX 75050,Lufkin,32.3963,-94.8626
+ST120,380 Adams Ave  Marshall  LA 72948,Lufkin,32.5566,-94.349
+ST121,236 Kelly Rd  Diana  TX 76700,Lufkin,32.7025,-94.7021
+ST122,2045 Carter St  Carthage  LA 71463,Lufkin,32.1568,-94.3376
+ST123,6607 Cooper Rd  Marshall  LA 74571,Lufkin,32.5374,-94.3609
+ST124,8675 Rodriguez St  Jacksonville  TX 76908,Lufkin,31.9444,-95.2883
+ST125,5101 Brown Ave  Hallsville  TX 75701,Lufkin,32.493,-94.5891
+ST126,7994 Washington St  Carthage  LA 74398,Lufkin,32.1379,-94.3103
+ST127,5984 Hughes St  Hallsville  TX 77535,Lufkin,32.4987,-94.568
+ST128,6752 Main St  Carthage  LA 76432,Lufkin,32.1784,-94.3569
+ST129,8242 Wright St  White Oak  TX 77940,Lufkin,32.5228,-94.8587
+ST130,1684 Barnes Dr  Diana  TX 79034,Lufkin,32.6888,-94.7223
+ST131,4009 Monroe St  Henderson  TX 75810,Lufkin,32.1718,-94.7756
+ST132,8662 Washington Rd  White Oak  TX 76125,Lufkin,32.5455,-94.8761
+ST133,9325 Taylor St  Beckville  LA 71022,Lufkin,32.2648,-94.4629
+ST134,2589 Oak Ave  Hallsville  TX 79538,Lufkin,32.4748,-94.5844
+ST135,5991 Jenkins Dr  Henderson  TX 79733,Lufkin,32.1469,-94.8153
+ST136,5450 Pine Rd  Beckville  LA 71585,Lufkin,32.2331,-94.4556
+ST137,2968 Hill Dr  Carthage  LA 78045,Lufkin,32.1719,-94.3258
+ST138,1667 Morris St  Kilgore  TX 77219,Lufkin,32.413,-94.848
+ST139,2325 Martin St  Big Sandy  TX 76972,Lufkin,32.5945,-94.9501
+ST140,4994 Cedar Ln  Nacogdoches  TX 79372,Lufkin,31.633,-94.6485
+ST141,9211 Powell Ave  Gladewater  TX 78745,Lufkin,32.5553,-94.9627
+ST142,592 Howard Ave  Lufkin  TX 77103,Lufkin,31.3105,-94.7394
+ST143,730 Anderson Ave  Beaumont  LA 72721,Lake Charles,30.068,-94.1548
+ST144,8679 Maple Ave  Palestine  TX 76896,Lufkin,31.7464,-95.6106
+ST145,5034 Pine Rd  Beckville  LA 70973,Lufkin,32.2258,-94.4741
+ST146,5284 Nelson Dr  Kilgore  TX 76465,Lufkin,32.38,-94.8852
+ST147,6341 Lopez Ave  Longview  TX 76850,Lufkin,32.5173,-94.7589
+ST148,3688 Adams Ave  Longview  TX 76947,Lufkin,32.5,-94.7606
+ST149,5158 Martin St  Beckville  LA 70091,Lufkin,32.2258,-94.4757
+ST150,9235 Thompson Ave  Gladewater  TX 75972,Lufkin,32.5401,-94.9601
+ST151,3283 Wright St  Palestine  TX 75922,Lufkin,31.7448,-95.645
+ST152,1608 Sanchez Rd  Kilgore  TX 79172,Lufkin,32.3672,-94.8877
+ST153,7404 Adams Rd  Scottsville  LA 73060,Lufkin,32.506,-94.0977
+ST154,4533 Madison Dr  Beckville  LA 75024,Lufkin,32.2419,-94.448
+ST155,2425 Rivera Ave  Hallsville  TX 76797,Lufkin,32.4998,-94.5801
+ST156,4037 Johnson St  Longview  TX 76549,Lufkin,32.5103,-94.7539
+ST157,9623 Garcia Rd  Tatum  TX 75984,Lufkin,32.3234,-94.5295
+ST158,5051 Maple Ave  Tatum  TX 76464,Lufkin,32.3197,-94.5276
+ST159,5574 Kelly Rd  Beaumont  LA 76482,Lake Charles,30.0785,-94.0994
+ST160,5350 Taylor St  Tatum  TX 76552,Lufkin,32.3078,-94.5136
+ST161,7420 Sanders Dr  Tenaha  LA 73032,Lufkin,31.9197,-94.2137
+ST162,7406 Campbell St  Jacksonville  TX 76203,Lufkin,31.9522,-95.2761
+ST163,2387 Bell Rd  Gladewater  TX 76756,Lufkin,32.5283,-94.966
+ST164,4925 First St  Tatum  LA 70085,Lufkin,32.324,-94.4972
+ST165,4497 Davis Rd  Carthage  LA 73293,Lufkin,32.1737,-94.3322
+ST166,645 Foster Ave  Kilgore  TX 78817,Lufkin,32.3998,-94.8654
+ST167,5721 Watson St  Scottsville  LA 76901,Lufkin,32.5382,-94.1397
+ST168,1947 Gray Ave  White Oak  TX 79115,Lufkin,32.522,-94.8446
+ST169,8303 Peterson St  Gladewater  TX 77056,Lufkin,32.5564,-94.9603
+ST170,863 Foster Ave  White Oak  TX 75430,Lufkin,32.5426,-94.884
+ST171,1712 Edwards Dr  Kilgore  TX 77079,Lufkin,32.4038,-94.8755
+ST172,7987 Morgan Ave  Marshall  LA 72031,Lufkin,32.5612,-94.3483
+ST173,1922 Campbell St  Palestine  TX 76413,Lufkin,31.7323,-95.6185
+ST174,3263 Cedar Ln  Diana  TX 75509,Lufkin,32.6873,-94.7159
+ST175,4025 Harris Dr  Gladewater  TX 77550,Lufkin,32.5091,-94.9362
+ST176,933 Moore Dr  Henderson  TX 78501,Lufkin,32.1733,-94.7979
+ST177,5763 Jackson Blvd  Palestine  TX 76784,Lufkin,31.7599,-95.6482
+ST178,3557 Henderson Ave  Nacogdoches  TX 79659,Lufkin,31.5818,-94.6532
+ST179,7259 Phillips Dr  Gladewater  TX 76241,Lufkin,32.5187,-94.9201
+ST180,7590 Young St  Jacksonville  TX 79134,Lufkin,31.9658,-95.2485
+ST181,9312 Jenkins Dr  Kilgore  TX 75115,Lufkin,32.3824,-94.8982
+ST182,2972 Thompson Ave  Marshall  LA 75108,Lufkin,32.5242,-94.3522
+ST183,8483 Cedar Ln  Gladewater  TX 79318,Lufkin,32.5183,-94.9559
+ST184,2617 Clark Dr  Diana  TX 77592,Lufkin,32.6902,-94.7228
+ST185,2281 Ward Rd  Hallsville  TX 79554,Lufkin,32.5046,-94.5467
+ST186,7323 Gray Ave  Kilgore  TX 76862,Lufkin,32.416,-94.8481
+ST187,6125 Church St  White Oak  TX 79546,Lufkin,32.5323,-94.8736
+ST188,9837 Nelson Dr  Carthage  LA 74517,Lufkin,32.1283,-94.367
+ST189,2604 First St  Longview  TX 78983,Lufkin,32.493,-94.7119
+ST190,493 James Dr  Lufkin  TX 79947,Lufkin,31.3102,-94.7422
+ST191,2413 Church St  Converse  LA 70797,Leesville,31.7893,-93.6401
+ST192,1052 White Ave  Rosepine  LA 79098,Leesville,30.9171,-93.2825
+ST193,2599 Simmons St  Fisher  LA 71409,Leesville,31.7083,-93.1916
+ST194,6682 Jenkins Dr  Converse  LA 71667,Leesville,31.7674,-93.6549
+ST195,6482 Watson St  Zwolle  LA 73365,Leesville,31.628,-93.6404
+ST196,6698 Anderson Ave  Pleasant Hill  LA 73773,Leesville,31.7876,-93.5457
+ST197,9371 Hall Ave  Pleasant Hill  LA 73002,Leesville,31.8096,-93.5287
+ST198,3739 Perez Rd  Rosepine  LA 73696,Leesville,30.9418,-93.2731
+ST199,8708 Cox St  Many  LA 78327,Leesville,31.5524,-93.4962
+ST200,2370 Maple Ave  DeRidder  LA 72117,Leesville,30.8522,-93.3149
+ST201,1597 Brooks Ave  Fisher  LA 78984,Leesville,31.7431,-93.1897
+ST202,4927 Ross St  Zwolle  LA 79711,Leesville,31.6384,-93.6612
+ST203,7880 Bell Rd  Converse  LA 79360,Leesville,31.8005,-93.6675
+ST204,4699 James Dr  Converse  LA 78281,Leesville,31.7723,-93.6858
+ST205,5731 Lincoln Ave  DeRidder  LA 77219,Leesville,30.8181,-93.2651
+ST206,8891 Ward Rd  Pineville  LA 79602,Leesville,31.3158,-92.4068
+ST207,2218 Green Ave  Merryville  LA 77474,Leesville,30.7473,-93.5555
+ST208,6895 Anderson Ave  Zwolle  LA 74025,Leesville,31.6284,-93.6316
+ST209,5908 Henderson Ave  Many  LA 73830,Leesville,31.5505,-93.4856
+ST210,1086 Hernandez Ave  Mansfield  LA 71432,Leesville,32.055,-93.7075
+ST211,8081 Adams Rd  Leesville  LA 70491,Leesville,31.1694,-93.2318
+ST212,1414 Wood Rd  DeRidder  LA 78530,Leesville,30.8493,-93.3138
+ST213,323 Martinez St  Leesville  LA 75652,Leesville,31.1601,-93.2293
+ST214,2176 Roosevelt Ave  Zwolle  LA 75069,Leesville,31.6074,-93.6236
+ST215,3864 Miller St  Rosepine  LA 78748,Leesville,30.9476,-93.2888
+ST216,2234 Gonzalez Ave  DeRidder  LA 71574,Leesville,30.8418,-93.2636
+ST217,3525 Anderson Ave  Hornbeck  LA 79311,Leesville,31.2952,-93.4003
+ST218,7665 Stewart Ave  Florien  LA 75364,Leesville,31.6389,-93.2998
+ST219,1199 Torres Dr  Merryville  LA 79927,Leesville,30.7728,-93.532
+ST220,4755 Morris St  Merryville  LA 71844,Leesville,30.7266,-93.5609
+ST221,1569 Perez Rd  Jonesboro  LA 78697,Leesville,32.2676,-92.711
+ST222,2195 Moore Dr  Zwolle  LA 76163,Leesville,31.6165,-93.6497
+ST223,5677 Peterson St  Many  LA 72192,Leesville,31.5455,-93.4926
+ST224,2736 Jefferson Rd  Alexandria  LA 79456,Leesville,31.2871,-92.4218
+ST225,7385 Hughes St  Hornbeck  LA 77229,Leesville,31.3146,-93.3954
+ST226,4734 Henderson Ave  DeRidder  LA 77568,Leesville,30.8665,-93.2604
+ST227,3402 Flores Ave  Florien  LA 75625,Leesville,31.6069,-93.2969
+ST228,9116 Rivera Ave  Natchitoches  LA 73664,Leesville,31.7449,-93.0958
+ST229,4284 Martin St  Leesville  LA 75083,Leesville,31.1597,-93.2308
+ST230,9913 Ross St  DeRidder  LA 73992,Leesville,30.8425,-93.2997
+ST231,6661 Morris St  Florien  LA 78443,Leesville,31.6428,-93.2942
+ST232,4945 Morgan Ave  Converse  LA 70492,Leesville,31.7884,-93.665
+ST233,5376 Mitchell Ave  Mansfield  LA 71207,Leesville,32.0584,-93.6915
+ST234,3249 Franklin St  Leesville  LA 78957,Leesville,31.1595,-93.2312
+ST235,8833 Washington St  DeRidder  LA 79134,Leesville,30.852,-93.2747
+ST236,1375 Turner Ave  Natchitoches  LA 71818,Leesville,31.7406,-93.1102
+ST237,2102 Davis Rd  Zwolle  LA 71474,Leesville,31.6493,-93.6508
+ST238,7788 Ramirez Rd  Mansfield  LA 76425,Leesville,32.0289,-93.686
+ST239,5816 Watson St  Rosepine  LA 76259,Leesville,30.9078,-93.2613
+ST240,8938 Foster Ave  Rosepine  LA 70001,Leesville,30.9392,-93.2683
+ST241,7729 Clark Dr  Hornbeck  LA 70535,Leesville,31.3264,-93.4036
+ST242,8377 Scott St  Many  LA 78021,Leesville,31.5626,-93.4643
+ST243,7080 Murphy Dr  Hornbeck  LA 78536,Leesville,31.3502,-93.386
+ST244,1706 Hill Dr  Dodson  LA 72377,Leesville,32.0531,-92.8897
+ST245,5061 Morris St  Natchitoches  LA 70582,Leesville,31.7821,-93.0823
+ST246,3019 Harris Dr  Fisher  LA 78683,Leesville,31.6939,-93.2225
+ST247,6016 Ramirez Rd  Florien  LA 75106,Leesville,31.6165,-93.2943
+ST248,4814 Turner Ave  Mansfield  LA 70720,Leesville,32.0072,-93.7256
+ST249,4449 Bell Rd  Fisher  LA 72391,Leesville,31.7056,-93.1873
+ST250,4600 Edwards Dr  Mansfield  LA 77014,Leesville,32.016,-93.6908
+ST251,3718 Barnes Dr  Zwolle  LA 77635,Leesville,31.6541,-93.6176
+ST252,8125 King Rd  Robeline  LA 70900,Leesville,31.6472,-93.2386
+ST253,3870 Stewart Ave  Alexandria  LA 78230,Leesville,31.3056,-92.4514
+ST254,5467 Carter St  Alexandria  LA 70442,Leesville,31.3095,-92.4268
+ST255,9159 Hughes St  Hornbeck  LA 70824,Leesville,31.3306,-93.3997
+ST256,4598 Walker St  Fisher  LA 72029,Leesville,31.7028,-93.2357
+ST257,2280 Franklin St  Zwolle  LA 78540,Leesville,31.6292,-93.6516
+ST258,4673 Maple Ave  Many  LA 77072,Leesville,31.563,-93.4716
+ST259,6488 Miller St  Pleasant Hill  LA 75968,Leesville,31.8202,-93.5295
+ST260,5394 King Rd  Fisher  LA 70411,Leesville,31.7091,-93.2352
+ST261,8254 Watson St  Converse  LA 77598,Leesville,31.7934,-93.6356
+ST262,3816 Cox St  DeRidder  LA 78181,Leesville,30.83,-93.2984
+ST263,6822 Powell Ave  Hornbeck  LA 78991,Leesville,31.3454,-93.4207
+ST264,2978 Jackson St  DeRidder  LA 79311,Leesville,30.8174,-93.2973
+ST265,6894 White Ave  Leesville  LA 71432,Leesville,31.153,-93.2575
+ST266,9724 Morgan Ave  Many  LA 74475,Leesville,31.5675,-93.4933
+ST267,6374 Franklin St  Merryville  LA 73193,Leesville,30.7702,-93.5351
+ST268,387 Wood Rd  Zwolle  LA 76930,Leesville,31.6449,-93.6162
+ST269,6233 Anderson Ave  DeRidder  LA 78731,Leesville,30.8556,-93.3055
+ST270,3524 Butler Dr  Pleasant Hill  LA 71030,Leesville,31.8059,-93.5506
+ST271,9428 Richardson Dr  Florien  LA 73410,Leesville,31.594,-93.3251
+ST272,2830 Simmons St  Rosepine  LA 76327,Leesville,30.8922,-93.2573
+ST273,4934 Oak Ave  Mansfield  LA 75192,Leesville,32.0434,-93.6976
+ST274,9640 Torres Dr  Many  LA 78312,Leesville,31.569,-93.4823
+ST275,8985 Parker Ave  Zwolle  LA 79576,Leesville,31.5974,-93.6634
+ST276,7240 Robinson Ave  DeRidder  LA 76192,Leesville,30.8633,-93.3035
+ST277,7507 Rogers Ave  Rosepine  LA 79905,Leesville,30.9041,-93.2806
+ST278,4540 Anderson Ave  Pineville  LA 70733,Leesville,31.2987,-92.4155
+ST279,2872 Scott St  Zwolle  LA 76248,Leesville,31.6287,-93.6669
+ST280,1877 Price St  Alexandria  LA 70730,Leesville,31.2909,-92.4449
+ST281,1775 Bailey St  Converse  LA 75690,Leesville,31.7479,-93.6706
+ST282,6996 Turner Ave  Hornbeck  LA 78580,Leesville,31.2921,-93.4223
+ST283,8680 Johnson St  Converse  LA 71879,Leesville,31.7721,-93.6696
+ST284,5115 King Rd  Florien  LA 71310,Leesville,31.6452,-93.296
+ST285,4789 Campbell St  Zwolle  LA 71614,Leesville,31.6135,-93.6546
+ST286,7316 Nelson Dr  Alexandria  LA 70250,Leesville,31.292,-92.4294
+ST287,6342 Flores Ave  Merryville  LA 73816,Leesville,30.7726,-93.5409
+ST288,5050 King Rd  Pleasant Hill  LA 76547,Leesville,31.8039,-93.5332
+ST289,3620 Garcia Rd  Natchitoches  LA 72629,Leesville,31.7771,-93.0913
+ST290,3146 Perry St  Leesville  LA 71863,Leesville,31.1508,-93.2383
+ST291,274 Patterson Dr  Zwolle  LA 77092,Leesville,31.6317,-93.6164
+ST292,3363 Davis Rd  Zwolle  LA 76768,Leesville,31.6091,-93.6385
+ST293,596 Maple Ave  Zwolle  LA 78264,Leesville,31.6224,-93.6628
+ST294,4416 Ward Rd  Natchitoches  LA 78357,Leesville,31.7379,-93.0686
+ST295,2526 Hall Ave  Dodson  LA 76791,Leesville,32.0773,-92.9378
+ST296,1112 Parker Ave  Pineville  LA 76448,Leesville,31.3256,-92.4215
+ST297,1812 Main St  Zwolle  LA 77986,Leesville,31.6148,-93.6513
+ST298,4776 Green Ave  Pineville  LA 75813,Leesville,31.3301,-92.4105
+ST299,816 Sanders Dr  Natchitoches  LA 79897,Leesville,31.7753,-93.0994
+ST300,1698 Gonzalez Ave  Mansfield  LA 72133,Leesville,32.0585,-93.7297
+ST301,688 Moore Dr  Alexandria  LA 72397,Leesville,31.2841,-92.4156
+ST302,4010 Patterson Dr  Fisher  LA 78575,Leesville,31.7229,-93.202
+ST303,258 James Dr  Converse  LA 78492,Leesville,31.7883,-93.6472
+ST304,8721 Reed Dr  Converse  LA 76861,Leesville,31.8004,-93.6397
+ST305,7596 Long Rd  Florien  LA 76638,Leesville,31.6505,-93.2865
+ST306,8262 Phillips Dr  Natchitoches  LA 75992,Leesville,31.7576,-93.0908
+ST307,6509 First St  Florien  LA 76338,Leesville,31.6411,-93.2886
+ST308,941 Wood Rd  Pineville  LA 71084,Leesville,31.3182,-92.424
+ST309,9781 Cedar Ln  Hornbeck  LA 72068,Leesville,31.3231,-93.402
+ST310,8655 Evans Rd  Leesville  LA 78521,Leesville,31.1432,-93.2738
+ST311,1761 Patterson Dr  Many  LA 77739,Leesville,31.5895,-93.5097
+ST312,2189 Evans Rd  Natchitoches  LA 77874,Leesville,31.7372,-93.0663
+ST313,3984 Phillips Dr  Pineville  LA 70608,Leesville,31.3093,-92.4402
+ST314,1290 Butler Dr  Converse  LA 76087,Leesville,31.7496,-93.6445
+ST315,4541 Harris Dr  Pleasant Hill  LA 77262,Leesville,31.8146,-93.5022
+ST316,8741 Parker Ave  Florien  LA 77064,Leesville,31.6394,-93.2891
+ST317,4986 Cedar Ln  Fisher  LA 78761,Leesville,31.7497,-93.2042
+ST318,8336 Gonzalez Ave  Zwolle  LA 70554,Leesville,31.6487,-93.6299
+ST319,2536 Maple Ave  Alexandria  LA 78957,Leesville,31.2979,-92.4302
+ST320,1696 Butler Dr  DeRidder  LA 74505,Leesville,30.8569,-93.2866
+ST321,197 Peterson St  Pineville  LA 76902,Leesville,31.2956,-92.4379
+ST322,8052 Hughes St  Jonesboro  LA 72215,Leesville,32.2688,-92.7031
+ST323,3465 Reed Dr  Rosepine  LA 76898,Leesville,30.9447,-93.2709
+ST324,4532 Barnes Dr  Rosepine  LA 78942,Leesville,30.8968,-93.2982
+ST325,9551 Davis Rd  Mansfield  LA 70353,Leesville,32.0076,-93.7209
+ST326,2864 Davis Rd  Converse  LA 72369,Leesville,31.7774,-93.6692
+ST327,5348 Anderson Ave  Many  LA 77701,Leesville,31.5666,-93.4717
+ST328,3675 Cedar Ln  Zwolle  LA 77208,Leesville,31.6153,-93.6531
+ST329,3471 Price St  Florien  LA 75687,Leesville,31.6006,-93.3264
+ST330,7350 Cooper Rd  Pleasant Hill  LA 75995,Leesville,31.7918,-93.5024
+ST331,8341 Washington St  Many  LA 71132,Leesville,31.5639,-93.4923
+ST332,9551 Gray Ave  Converse  LA 74177,Leesville,31.7854,-93.6757
+ST333,6416 Young St  Natchitoches  LA 79967,Leesville,31.7774,-93.0994
+ST334,2192 Richardson Dr  Merryville  LA 74033,Leesville,30.7633,-93.5307
+ST335,9350 Butler Dr  Natchitoches  LA 72223,Leesville,31.7868,-93.1008
+ST336,6098 Wood Rd  Alexandria  LA 72838,Leesville,31.3406,-92.4564
+ST337,9857 Powell Ave  Mansfield  LA 71549,Leesville,32.0149,-93.6869
+ST338,5573 Scott St  Leesville  LA 73501,Leesville,31.172,-93.2362
+ST339,6974 Oak Ave  Many  LA 70176,Leesville,31.5448,-93.5113
+ST340,6433 Hernandez Ave  Mansfield  LA 74855,Leesville,32.0153,-93.7346
+ST341,4758 Wright St  Hornbeck  LA 79394,Leesville,31.3276,-93.4283
+ST342,7867 Hughes St  Many  LA 78160,Leesville,31.5736,-93.5123
+ST343,2101 Roosevelt Ave  Hornbeck  LA 76222,Leesville,31.3371,-93.3869
+ST344,3121 Robinson Ave  Many  LA 79411,Leesville,31.5978,-93.4612
+ST345,6618 Lee Rd  Florien  LA 73144,Leesville,31.6453,-93.3322
+ST346,8296 Simmons St  Zwolle  LA 74378,Leesville,31.6068,-93.6546
+ST347,8549 Turner Ave  Fisher  LA 78948,Leesville,31.714,-93.1972
+ST348,5952 Adams Rd  Alexandria  LA 75311,Leesville,31.3216,-92.4657
+ST349,9168 Nelson Dr  Mansfield  LA 70503,Leesville,32.0114,-93.7305
+ST350,7967 Cox St  Many  LA 77715,Leesville,31.5563,-93.4644
+ST351,3231 Long Rd  Fisher  LA 71327,Leesville,31.6973,-93.1993
+ST352,797 Walker St  Pineville  LA 76935,Leesville,31.3091,-92.4049
+ST353,7402 Campbell St  Natchitoches  LA 78485,Leesville,31.7627,-93.0782
+ST354,748 Edwards Dr  Hornbeck  LA 78089,Leesville,31.2984,-93.4231
+ST355,3788 Monroe St  Rosepine  LA 70755,Leesville,30.9349,-93.2766
+ST356,2951 Elm Dr  Fisher  LA 71253,Leesville,31.7513,-93.1794
+ST357,676 Morris St  Zwolle  LA 73948,Leesville,31.6166,-93.6623
+ST358,720 Richardson Dr  Hornbeck  LA 73380,Leesville,31.305,-93.4174
+ST359,4789 Wilson Dr  DeRidder  LA 78871,Leesville,30.859,-93.2927
+ST360,4272 Wilson Ave  Pineville  LA 75813,Leesville,31.3066,-92.4192
+ST361,9120 Morris St  Pineville  LA 76445,Leesville,31.3385,-92.4517
+ST362,4960 Jenkins Dr  Zwolle  LA 71968,Leesville,31.6469,-93.6226
+ST363,2925 Lincoln Ave  Natchitoches  LA 74414,Leesville,31.786,-93.0578
+ST364,1730 Walker St  Hornbeck  LA 73948,Leesville,31.3374,-93.3786
+ST365,3399 Cox St  Fisher  LA 74602,Leesville,31.734,-93.1954
+ST366,2797 Perry St  Pineville  LA 71395,Leesville,31.3002,-92.4202
+ST367,3952 Johnson St  Merryville  LA 70601,Leesville,30.7306,-93.5263
+ST368,6123 Cooper Rd  Hornbeck  LA 79952,Leesville,31.3162,-93.4145
+ST369,6513 First St  Pineville  LA 77912,Leesville,31.3035,-92.4169
+ST370,178 Flores Ave  Zwolle  LA 73795,Leesville,31.6185,-93.6709
+ST371,2995 Howard Ave  Pleasant Hill  LA 78768,Leesville,31.7858,-93.4981
+ST372,6267 Lee Rd  Natchitoches  LA 71386,Leesville,31.7352,-93.0759
+ST373,9403 Sanchez Rd  Pineville  LA 79443,Leesville,31.3316,-92.4183
+ST374,2230 Thompson Ave  Alexandria  LA 75700,Leesville,31.3353,-92.4399
+ST375,9541 Green Ave  Converse  LA 77097,Leesville,31.7586,-93.6811
+ST376,9159 Gonzalez Ave  Leesville  LA 78868,Leesville,31.1267,-93.2738
+ST377,8273 Hill Dr  Fisher  LA 76111,Leesville,31.7422,-93.235
+ST378,7787 Jackson St  Zwolle  LA 70443,Leesville,31.6018,-93.6745
+ST379,2745 Campbell St  Leesville  LA 70793,Leesville,31.1595,-93.2742
+ST380,8312 Mitchell Ave  Natchitoches  LA 70420,Leesville,31.7822,-93.0728
+ST381,5585 Peterson St  Groves  LA 70245,Lake Charles,29.9346,-93.9241
+ST382,1075 Bennett Ave  Vinton  LA 75454,Lake Charles,30.195,-93.6052
+ST383,6379 Gonzales Rd  Lake Arthur  LA 70420,Lake Charles,30.1041,-92.6333
+ST384,5526 Gonzalez Ave  Abbeville  LA 70487,Lake Charles,29.9919,-92.1094
+ST385,3316 Gray Ave  Eunice  LA 70750,Lake Charles,30.4841,-92.4391
+ST386,8722 Gray Ave  Lafayette  LA 78674,Lake Charles,30.2496,-91.9966
+ST387,3434 Turner Ave  Crowley  LA 75173,Lake Charles,30.1879,-92.3874
+ST388,2164 Watson St  Welsh  LA 74085,Lake Charles,30.2659,-92.8227
+ST389,1831 Gonzalez Ave  Lake Arthur  LA 77914,Lake Charles,30.0947,-92.6273
+ST390,8414 White Ave  Westlake  LA 75964,Lake Charles,30.2605,-93.2373
+ST391,470 Morgan Ave  Lake Arthur  LA 74499,Lake Charles,30.0669,-92.643
+ST392,3861 Anderson Ave  Lafayette  LA 71895,Lake Charles,30.2452,-92.0311
+ST393,7398 Foster Ave  Westlake  LA 78732,Lake Charles,30.253,-93.2634
+ST394,8526 Rodriguez St  Groves  LA 70528,Lake Charles,29.9305,-93.9141
+ST395,6127 Mitchell Ave  New Iberia  LA 70471,Lake Charles,30.0318,-91.7968
+ST396,9622 Lopez Ave  Crowley  LA 76281,Lake Charles,30.239,-92.3901
+ST397,9244 Park Ave  Sulphur  LA 79591,Lake Charles,30.2583,-93.3984
+ST398,7511 Roberts St  Lafayette  LA 74540,Lake Charles,30.2207,-92.0081
+ST399,569 Phillips Dr  Lafayette  LA 72501,Lake Charles,30.2367,-92.0393
+ST400,9748 Green Ave  Crowley  LA 75528,Lake Charles,30.1843,-92.3853
+ST401,4342 Hill Dr  Lake Charles  LA 77682,Lake Charles,30.198,-93.2444
+ST402,2266 Martin St  Vinton  LA 72862,Lake Charles,30.2003,-93.5991
+ST403,3632 Oak Ave  Iowa  LA 74587,Lake Charles,30.2516,-92.9947
+ST404,6704 Cox St  Crowley  LA 70231,Lake Charles,30.1869,-92.3876
+ST405,9758 Barnes Dr  New Iberia  LA 73169,Lake Charles,29.9858,-91.8132
+ST406,2977 Coleman Rd  New Iberia  LA 72749,Lake Charles,29.9775,-91.8009
+ST407,728 Maple Ave  Opelousas  LA 75488,Lake Charles,30.5585,-92.0945
+ST408,8159 Anderson Ave  Lake Charles  LA 70990,Lake Charles,30.2557,-93.1986
+ST409,2715 Walker St  Jennings  LA 72013,Lake Charles,30.1933,-92.6601
+ST410,6516 Stewart Ave  Welsh  LA 72210,Lake Charles,30.2242,-92.8109
+ST411,857 Campbell St  Abbeville  LA 78947,Lake Charles,29.9503,-92.1484
+ST412,2310 Clark Dr  Welsh  LA 79931,Lake Charles,30.2639,-92.8094
+ST413,2114 Brooks Ave  Jennings  LA 74976,Lake Charles,30.2114,-92.6514
+ST414,7737 Madison Dr  Iowa  LA 78393,Lake Charles,30.2162,-93.0075
+ST415,3355 Jackson St  Orange  LA 75797,Lake Charles,30.0869,-93.7211
+ST416,7328 Parker Ave  Orange  LA 77332,Lake Charles,30.0698,-93.7501
+ST417,9760 Cooper Rd  Fannett  LA 73973,Lake Charles,29.8633,-94.2023
+ST418,3257 Garcia Rd  New Iberia  LA 76604,Lake Charles,30.0321,-91.8348
+ST419,9986 Brown Ave  Westlake  LA 70199,Lake Charles,30.2257,-93.2827
+ST420,4361 Maple Ave  Lafayette  LA 75778,Lake Charles,30.2127,-91.999
+ST421,8561 Campbell St  Jennings  LA 75272,Lake Charles,30.2004,-92.6317
+ST422,3202 Walker St  Jennings  LA 73600,Lake Charles,30.2032,-92.6558
+ST423,5275 Washington St  Opelousas  LA 79302,Lake Charles,30.5075,-92.0868
+ST424,6804 Carter St  Lafayette  LA 72818,Lake Charles,30.1959,-92.0044
+ST425,3267 Roberts St  Lake Charles  LA 75124,Lake Charles,30.2044,-93.2422
+ST426,6770 Price St  Crowley  LA 70188,Lake Charles,30.2217,-92.3958
+ST427,5494 Price St  Opelousas  LA 76761,Lake Charles,30.518,-92.0569
+ST428,5444 Gonzalez Ave  Orange  LA 73801,Lake Charles,30.0781,-93.7073
+ST429,5359 Harris Dr  Lafayette  LA 74933,Lake Charles,30.2296,-92.0423
+ST430,9283 Maple Ave  Abbeville  LA 71524,Lake Charles,29.9456,-92.1355
+ST431,4321 Pine Rd  New Iberia  LA 71481,Lake Charles,29.9911,-91.8112
+ST432,323 Wilson Dr  Welsh  LA 77807,Lake Charles,30.2242,-92.8391
+ST433,9336 Lewis Ave  Vinton  LA 75784,Lake Charles,30.2056,-93.5697
+ST434,6998 Roosevelt Ave  New Iberia  LA 76224,Lake Charles,30.0012,-91.7945
+ST435,7609 Thompson Ave  New Iberia  LA 78069,Lake Charles,30.0131,-91.8358
+ST436,6918 Ross St  Sulphur  LA 71472,Lake Charles,30.2495,-93.3876
+ST437,3875 Turner Ave  Abbeville  LA 78962,Lake Charles,29.9792,-92.1522
+ST438,4063 Thomas Rd  Lake Charles  LA 72473,Lake Charles,30.2488,-93.2241
+ST439,2852 Ross St  Westlake  LA 71806,Lake Charles,30.2576,-93.2834
+ST440,5469 Jenkins Dr  Lafayette  LA 77567,Lake Charles,30.2205,-92.002
+ST441,1913 Cook St  Vinton  LA 74770,Lake Charles,30.2024,-93.5715
+ST442,4280 Pine Rd  China  LA 77884,Lake Charles,30.0612,-94.3187
+ST443,3801 Gray Ave  Crowley  LA 79250,Lake Charles,30.1938,-92.3924
+ST444,6315 Parker Ave  Westlake  LA 76389,Lake Charles,30.2321,-93.2698
+ST445,3970 Jefferson Rd  Vinton  LA 73210,Lake Charles,30.2027,-93.5694
+ST446,788 Second St  Lake Arthur  LA 79539,Lake Charles,30.118,-92.6573
+ST447,3473 Moore Dr  Iowa  LA 74128,Lake Charles,30.2261,-93.0271
+ST448,1041 Torres Dr  Abbeville  LA 77148,Lake Charles,29.9562,-92.1144
+ST449,8420 Perry St  New Iberia  LA 79959,Lake Charles,29.9998,-91.8123
+ST450,226 Cook St  Lake Charles  LA 77821,Lake Charles,30.2297,-93.2072
+ST451,9058 Bailey St  Abbeville  LA 70206,Lake Charles,29.9951,-92.1324
+ST452,5572 Flores Ave  Jennings  LA 71857,Lake Charles,30.2284,-92.6759
+ST453,4004 Brown Ave  Iowa  LA 76197,Lake Charles,30.2504,-93.0381
+ST454,9346 Richardson Dr  Westlake  LA 79646,Lake Charles,30.2616,-93.2586
+ST455,6563 Morris St  Crowley  LA 76824,Lake Charles,30.2375,-92.4014
+ST456,6298 Cooper Rd  Orange  LA 72083,Lake Charles,30.0892,-93.7102
+ST457,6027 Nelson Dr  Iowa  LA 70812,Lake Charles,30.2248,-93.0393
+ST458,1731 Turner Ave  Iowa  LA 77769,Lake Charles,30.2579,-93.0189
+ST459,3882 Monroe St  Crowley  LA 78188,Lake Charles,30.2109,-92.3643
+ST460,8968 Harris Dr  Crowley  LA 75021,Lake Charles,30.2072,-92.348
+ST461,148 Jackson Blvd  Vinton  LA 70139,Lake Charles,30.1661,-93.5953
+ST462,3874 Madison Dr  Welsh  LA 71304,Lake Charles,30.2559,-92.8058
+ST463,732 Rodriguez St  Opelousas  LA 77567,Lake Charles,30.5295,-92.0711
+ST464,6680 Park Ave  Opelousas  LA 75413,Lake Charles,30.517,-92.0649
+ST465,5317 Sanders Dr  Lake Charles  LA 79544,Lake Charles,30.2473,-93.2176
+ST466,2912 Collins St  Westlake  LA 76141,Lake Charles,30.2655,-93.251
+ST467,2065 Bennett Ave  Welsh  LA 71943,Lake Charles,30.2276,-92.8326
+ST468,4719 Martinez St  Westlake  LA 72497,Lake Charles,30.2302,-93.2582
+ST469,8043 Wood Rd  Eunice  LA 71955,Lake Charles,30.5017,-92.4282
+ST470,9752 Oak Ave  New Iberia  LA 75220,Lake Charles,30.0249,-91.8404
+ST471,9387 Anderson Ave  Orange  LA 75921,Lake Charles,30.1025,-93.7478
+ST472,4058 Maple Ave  Vinton  LA 76330,Lake Charles,30.1602,-93.5677
+ST473,5694 King Rd  Nederland  LA 73949,Lake Charles,29.9887,-93.9939
+ST474,8907 Wright St  Crowley  LA 73480,Lake Charles,30.2144,-92.3638
+ST475,5581 Perez Rd  Lafayette  LA 75065,Lake Charles,30.2138,-92.0122
+ST476,3970 Thomas Rd  Crowley  LA 73604,Lake Charles,30.1939,-92.394
+ST477,7065 Lopez Ave  Eunice  LA 75753,Lake Charles,30.4892,-92.4257
+ST478,9089 Turner Ave  Sulphur  LA 76929,Lake Charles,30.2169,-93.3478
+ST479,1629 Powell Ave  Iowa  LA 75652,Lake Charles,30.2195,-93.0414
+ST480,7217 Bell Rd  Opelousas  LA 72946,Lake Charles,30.5245,-92.071
+ST481,3887 Robinson Ave  Lake Charles  LA 72758,Lake Charles,30.2,-93.2016
+ST482,1353 Franklin St  Lake Charles  LA 71430,Lake Charles,30.2449,-93.2265
+ST483,8760 Roosevelt Ave  New Iberia  LA 72650,Lake Charles,29.9937,-91.811
+ST484,8202 Torres Dr  Crowley  LA 77918,Lake Charles,30.2401,-92.3933
+ST485,606 Morris St  Sulphur  LA 77535,Lake Charles,30.2472,-93.3842
+ST486,6107 Washington Rd  Crowley  LA 70561,Lake Charles,30.2247,-92.3905
+ST487,2723 Thomas Rd  Jennings  LA 78640,Lake Charles,30.2469,-92.678
+ST488,5342 Butler Dr  Abbeville  LA 72232,Lake Charles,29.9527,-92.1398
+ST489,5583 Hall Ave  Eunice  LA 76964,Lake Charles,30.4897,-92.3991
+ST490,7669 Nelson Dr  Welsh  LA 72540,Lake Charles,30.2524,-92.8142
+ST491,9442 Thompson Ave  Orange  LA 73977,Lake Charles,30.0695,-93.7655
+ST492,9230 Lee Rd  Lake Arthur  LA 76468,Lake Charles,30.1135,-92.6725
+ST493,8182 Long Rd  Lake Arthur  LA 74693,Lake Charles,30.1011,-92.6455
+ST494,3599 White Ave  Abbeville  LA 73190,Lake Charles,29.9648,-92.1521
+ST495,1484 Richardson Dr  Lake Charles  LA 75344,Lake Charles,30.2047,-93.2399
+ST496,2269 Church St  Westlake  LA 78748,Lake Charles,30.2767,-93.2898
+ST497,1199 Hall Ave  Westlake  LA 76985,Lake Charles,30.2739,-93.2534
+ST498,1281 Allen Dr  Lake Charles  LA 74373,Lake Charles,30.2149,-93.1877
+ST499,9352 Robinson Ave  Sulphur  LA 74713,Lake Charles,30.2079,-93.3554
+ST500,1052 Bennett Ave  Jennings  LA 72320,Lake Charles,30.2303,-92.6633
+ST501,8970 Cook St  Lake Arthur  LA 73690,Lake Charles,30.0624,-92.6519
+ST502,2048 Elm Dr  Sulphur  LA 79455,Lake Charles,30.2332,-93.3709
+ST503,5609 Anderson Ave  Lake Charles  LA 79055,Lake Charles,30.2047,-93.1927
+ST504,2598 Watson St  Iowa  LA 74377,Lake Charles,30.2577,-93.0121
+ST505,2127 Gray Ave  Iowa  LA 75617,Lake Charles,30.2204,-93.0228
+ST506,4253 Cooper Rd  Iowa  LA 74926,Lake Charles,30.2355,-93.0265
+ST507,8375 Carter St  Eunice  LA 70763,Lake Charles,30.4979,-92.4235
+ST508,8598 Kelly Rd  Abbeville  LA 71618,Lake Charles,29.9503,-92.1402
+ST509,8312 First St  Vinton  LA 77803,Lake Charles,30.1745,-93.5976
+ST510,9630 Coleman Rd  Beaumont  LA 74825,Lake Charles,30.0584,-94.0989
+ST511,2519 Flores Ave  Westlake  LA 77324,Lake Charles,30.2784,-93.2472
+ST512,4500 Jackson St  Westlake  LA 71993,Lake Charles,30.261,-93.2512
+ST513,7503 Phillips Dr  Iowa  LA 76652,Lake Charles,30.2568,-93.0403
+ST514,7191 Lewis Ave  Crowley  LA 72239,Lake Charles,30.1959,-92.3866
+ST515,7827 Bell Rd  Abbeville  LA 78091,Lake Charles,29.9703,-92.1278
+ST516,7302 Cedar Ln  Opelousas  LA 71830,Lake Charles,30.5549,-92.106
+ST517,2181 Rivera Ave  Sulphur  LA 74604,Lake Charles,30.2535,-93.3968
+ST518,1073 Jefferson Rd  Vidor  LA 76560,Lake Charles,30.1121,-94.0171
+ST519,573 Martinez St  Lake Charles  LA 78650,Lake Charles,30.2049,-93.2184
+ST520,7129 Davis Rd  Abbeville  LA 72210,Lake Charles,29.99,-92.1397
+ST521,5887 Morgan Ave  Jennings  LA 75451,Lake Charles,30.194,-92.665
+ST522,4961 Turner Ave  Lafayette  LA 77403,Lake Charles,30.2383,-92.0244
+ST523,3502 Howard Ave  Vinton  LA 78157,Lake Charles,30.1646,-93.605
+ST524,5333 Pine Rd  Jennings  LA 77986,Lake Charles,30.2193,-92.6596
+ST525,443 Perez Rd  Jennings  LA 71157,Lake Charles,30.2107,-92.6331
+ST526,7988 Sanchez Rd  Eunice  LA 75050,Lake Charles,30.4782,-92.412
+ST527,2247 Morgan Ave  Jennings  LA 72493,Lake Charles,30.2427,-92.6317
+ST528,5249 Hughes St  Vinton  LA 79894,Lake Charles,30.1806,-93.5942
+ST529,2191 Young St  Crowley  LA 72881,Lake Charles,30.203,-92.3487
+ST530,5287 Robinson Ave  Orange  LA 77675,Lake Charles,30.0958,-93.7445
+ST531,2096 First St  Crowley  LA 75748,Lake Charles,30.217,-92.3475
+ST532,9853 Roosevelt Ave  Crowley  LA 70675,Lake Charles,30.2438,-92.361
+ST533,8706 Young St  Abbeville  LA 71820,Lake Charles,29.9623,-92.1166
+ST534,6846 Monroe St  Iowa  LA 79396,Lake Charles,30.243,-93.0279
+ST535,621 Patterson Dr  Westlake  LA 73546,Lake Charles,30.2725,-93.2723
+ST536,5528 Garcia Rd  Westlake  LA 70448,Lake Charles,30.2459,-93.2894
+ST537,608 Martin St  Orange  LA 79269,Lake Charles,30.1015,-93.737
+ST538,7183 Collins St  Orange  LA 79248,Lake Charles,30.0885,-93.7188
+ST539,6804 Lee Rd  Abbeville  LA 75558,Lake Charles,29.9659,-92.128
+ST540,1916 Kelly Rd  Jennings  LA 78560,Lake Charles,30.2427,-92.6336
+ST541,1650 Sanchez Rd  Port Neches  LA 78663,Lake Charles,29.9641,-93.9601
+ST542,9563 King Rd  Lake Charles  LA 74580,Lake Charles,30.2244,-93.1982
+ST543,937 Hernandez Ave  Abbeville  LA 71408,Lake Charles,29.9671,-92.1191
+ST544,8712 Gonzales Rd  Eunice  LA 78378,Lake Charles,30.4849,-92.4159
+ST545,9356 Coleman Rd  Orange  LA 77019,Lake Charles,30.0726,-93.7414
+ST546,2961 Jenkins Dr  Lake Arthur  LA 76341,Lake Charles,30.0882,-92.6553
+ST547,1379 Washington St  Westlake  LA 77777,Lake Charles,30.2682,-93.2938
+ST548,9079 Garcia Rd  New Iberia  LA 76412,Lake Charles,30.0215,-91.8447
+ST549,2793 Robinson Ave  Westlake  LA 75578,Lake Charles,30.2658,-93.2595
+ST550,498 Garcia Rd  Eunice  LA 73226,Lake Charles,30.5142,-92.4287
+ST551,6045 Scott St  Jennings  LA 76621,Lake Charles,30.2416,-92.6629
+ST552,1798 James Dr  Jennings  LA 78267,Lake Charles,30.2242,-92.6366
+ST553,8612 Adams Rd  Lake Charles  LA 73249,Lake Charles,30.2462,-93.1945
+ST554,7081 Adams Rd  Sulphur  LA 75217,Lake Charles,30.2544,-93.3511
+ST555,1297 Rodriguez St  Westlake  LA 70723,Lake Charles,30.2259,-93.2884
+ST556,4091 Simmons St  Sulphur  LA 76984,Lake Charles,30.2588,-93.3929
+ST557,2907 Lewis Ave  Nederland  LA 70666,Lake Charles,29.9886,-94.05
+ST558,3423 Johnson St  New Iberia  LA 79876,Lake Charles,29.9946,-91.8307
+ST559,8487 Thomas Rd  Jennings  LA 76012,Lake Charles,30.2042,-92.6509
+ST560,610 Madison Dr  Lafayette  LA 71624,Lake Charles,30.1941,-92.0123
+ST561,9447 Rivera Ave  Orange  LA 77977,Lake Charles,30.0781,-93.756
+ST562,950 Church St  Opelousas  LA 71971,Lake Charles,30.5067,-92.1083
+ST563,1924 Turner Ave  Eunice  LA 75926,Lake Charles,30.4823,-92.4162
+ST564,1492 Jenkins Dr  Opelousas  LA 73786,Lake Charles,30.5386,-92.0622
+ST565,8960 Taylor St  Eunice  LA 79708,Lake Charles,30.5118,-92.4212
+ST566,5499 Maple Ave  Lafayette  LA 77232,Lake Charles,30.2528,-91.9943
+ST567,9380 Allen Dr  Crowley  LA 70960,Lake Charles,30.2229,-92.3995
+ST568,1545 Roberts St  Iowa  LA 78562,Lake Charles,30.2367,-93.0154
+ST569,9893 Washington Rd  Eunice  LA 76238,Lake Charles,30.4743,-92.4452
+ST570,1226 Robinson Ave  El Paso  TX 78602,Outside Radius,31.73,-106.4342
+ST571,1290 Price St  Austin  TX 78875,Outside Radius,30.1901,-97.6917
+ST572,8795 Long Rd  Austin  TX 79795,Outside Radius,30.342,-97.7831
+ST573,2611 Hall Ave  Houston  TX 78621,Outside Radius,29.836,-95.2886
+ST574,3911 Moore Dr  Slidell  LA 79580,Outside Radius,30.1839,-89.7488
+ST575,553 Mitchell Ave  Corpus Christi  TX 77958,Outside Radius,27.7916,-97.3271
+ST576,5304 Foster Ave  Baton Rouge  LA 76611,Outside Radius,30.5406,-91.2481
+ST577,9812 Rivera Ave  Lubbock  TX 79085,Outside Radius,33.4877,-101.8912
+ST578,315 Hall Ave  El Paso  TX 77923,Outside Radius,31.8026,-106.528
+ST579,7381 Jenkins Dr  McAllen  TX 79704,Outside Radius,26.2623,-98.2761
+ST580,919 Lopez Ave  El Paso  TX 79163,Outside Radius,31.7707,-106.408
+ST581,5408 Hernandez Ave  McAllen  TX 75633,Outside Radius,26.2678,-98.2281

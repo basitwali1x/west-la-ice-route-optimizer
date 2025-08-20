@@ -54,6 +54,52 @@ class GoogleSheetsService:
             logger.info(f"Returning cached data for sheet {sheet_id}")
             return self.cache[cache_key]
         
+        try:
+            import requests
+            import csv
+            from io import StringIO
+            
+            csv_url = f"https://docs.google.com/spreadsheets/d/{sheet_id}/export?format=csv&gid=0"
+            logger.info(f"Attempting to access public CSV export: {csv_url}")
+            
+            response = requests.get(csv_url, timeout=10)
+            if response.status_code == 200:
+                logger.info("Successfully accessed public CSV export")
+                csv_content = StringIO(response.text)
+                csv_reader = csv.DictReader(csv_content)
+                
+                customers = []
+                for row in csv_reader:
+                    customer_name = (row.get('Customer') or row.get('customer') or 
+                                   row.get('Customer Name') or row.get('Name') or '').strip()
+                    address = (row.get('Address') or row.get('address') or '').strip()
+                    
+                    if customer_name and address:
+                        customer = {
+                            "name": customer_name,
+                            "address": address,
+                            "phone": (row.get('Main Phone') or row.get('Phone') or 
+                                    row.get('phone') or '').strip(),
+                            "depot": "all",
+                            "latitude": row.get('Latitude') or row.get('latitude'),
+                            "longitude": row.get('Longitude') or row.get('longitude')
+                        }
+                        customers.append(customer)
+                
+                result = {
+                    "customers": {"all": customers},
+                    "route_assignments": [],
+                    "truck_allocations": {},
+                    "last_updated": datetime.now().isoformat()
+                }
+                
+                self._set_cache(cache_key, result)
+                logger.info(f"Successfully loaded {len(customers)} customers from public CSV export")
+                return result
+                
+        except Exception as e:
+            logger.warning(f"Failed to access public CSV export: {e}")
+        
         client = self._authenticate()
         if not client:
             return {"error": "Failed to authenticate with Google Sheets"}
@@ -95,16 +141,26 @@ class GoogleSheetsService:
             records = worksheet.get_all_records()
             customers = []
             
+            logger.info(f"Processing worksheet '{worksheet.title}' with {len(records)} records")
+            
             for record in records:
-                if record.get('Customer') and record.get('Address'):
+                customer_name = (record.get('Customer') or record.get('customer') or 
+                               record.get('Customer Name') or record.get('Name') or '').strip()
+                address = (record.get('Address') or record.get('address') or '').strip()
+                
+                if customer_name and address:
                     customer = {
-                        "name": record.get('Customer', '').strip(),
-                        "address": record.get('Address', '').strip(),
-                        "phone": record.get('Main Phone', '').strip(),
-                        "depot": worksheet.title.lower()
+                        "name": customer_name,
+                        "address": address,
+                        "phone": (record.get('Main Phone') or record.get('Phone') or 
+                                record.get('phone') or '').strip(),
+                        "depot": worksheet.title.lower(),
+                        "latitude": record.get('Latitude') or record.get('latitude'),
+                        "longitude": record.get('Longitude') or record.get('longitude')
                     }
                     customers.append(customer)
             
+            logger.info(f"Parsed {len(customers)} valid customers from '{worksheet.title}'")
             return customers
         except Exception as e:
             logger.error(f"Error parsing customer data from {worksheet.title}: {e}")
