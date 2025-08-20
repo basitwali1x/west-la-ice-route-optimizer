@@ -32,7 +32,7 @@ class GoogleMapsService:
         else:
             hash_val = int(hashlib.md5(address.encode()).hexdigest()[:8], 16)
             
-            if "Lufkin" in address or "TX" in address or "Huntington" in address or "Zavalla" in address or "Ratcliff" in address:
+            if "Lufkin" in address or ("TX" in address and ("Lufkin" in address or "Huntington" in address or "Zavalla" in address or "Ratcliff" in address)):
                 base_lat = 31.3382
                 base_lng = -94.7291
                 lat_range = 0.08  # ~5-6 mile radius
@@ -155,7 +155,7 @@ class GoogleMapsService:
                 import hashlib
                 hash_val = int(hashlib.md5(location.encode()).hexdigest()[:8], 16)
                 
-                if "Lufkin" in location or "TX" in location or "Huntington" in location or "Zavalla" in location or "Ratcliff" in location:
+                if "Lufkin" in location or ("TX" in location and ("Lufkin" in location or "Huntington" in location or "Zavalla" in location or "Ratcliff" in location)):
                     base_lat, base_lng = 31.3382, -94.7291
                 elif "Lake Charles" in location or "LA 706" in location:
                     base_lat, base_lng = 30.2266, -93.2174
@@ -199,7 +199,7 @@ class GoogleMapsService:
             return "Lake Charles"
         elif location == "1107 Weiner St, Lufkin, TX 75904":
             return "Lufkin"
-        elif "Lufkin" in location or "TX" in location or "Huntington" in location or "Zavalla" in location or "Ratcliff" in location:
+        elif "Lufkin" in location or ("TX" in location and ("Lufkin" in location or "Huntington" in location or "Zavalla" in location or "Ratcliff" in location)):
             return "Lufkin"
         elif "Lake Charles" in location or "LA 706" in location:
             return "Lake Charles"

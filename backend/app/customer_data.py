@@ -87,7 +87,7 @@ def load_west_la_ice_customers() -> List[Customer]:
                 depot = excel_customer['depot']
             else:
                 address = excel_customer['address']
-                if 'Lufkin' in address or 'TX 759' in address:
+                if 'Lufkin' in address or ('TX' in address and ('Lufkin' in address or 'Huntington' in address or 'Zavalla' in address or 'Ratcliff' in address)):
                     depot = 'Lufkin'
                 elif 'Lake Charles' in address or 'LA 706' in address:
                     depot = 'Lake Charles'
@@ -150,7 +150,7 @@ def load_west_la_ice_customers() -> List[Customer]:
                             assigned_depot = customer_data.get("depot", depot)
                             if assigned_depot == "all":
                                 address = customer_data["address"]
-                                if 'Lufkin' in address or 'TX 759' in address:
+                                if 'Lufkin' in address or ('TX' in address and ('Lufkin' in address or 'Huntington' in address or 'Zavalla' in address or 'Ratcliff' in address)):
                                     assigned_depot = 'Lufkin'
                                 elif 'Lake Charles' in address or 'LA 706' in address:
                                     assigned_depot = 'Lake Charles'
