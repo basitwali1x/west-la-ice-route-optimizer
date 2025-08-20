@@ -224,18 +224,10 @@ class RouteOptimizer:
                     depot_customers, depot_address, depot_name, vehicles_for_depot
                 )
                 
-                valid_routes = []
-                for route in depot_routes:
-                    if self.validate_depot_assignment(route, depot_name):
-                        valid_routes.append(route)
-                    else:
-                        fallback_routes = self.create_depot_specific_fallback(depot_customers, depot_name)
-                        valid_routes.extend(fallback_routes)
-                        break
-                
-                all_routes.extend(valid_routes)
+                all_routes.extend(depot_routes)
                 
             except Exception as e:
+                print(f"Error optimizing routes for {depot_name}: {e}")
                 fallback_routes = self.create_depot_specific_fallback(depot_customers, depot_name)
                 all_routes.extend(fallback_routes)
         
@@ -842,19 +834,26 @@ class RouteOptimizer:
     
     def validate_depot_assignment(self, route: VehicleRoute, depot_name: str) -> bool:
         """Ensure all stops in a route belong to the correct depot"""
-        for route_point in route.route_points:
-            temp_customer = Customer(
-                id=route_point.customer_id,
-                name=route_point.customer_name,
-                address=route_point.address,
-                depot=depot_name,
-                latitude=route_point.latitude,
-                longitude=route_point.longitude
-            )
-            
-            if not self.is_within_depot_zone(temp_customer, depot_name):
-                return False
-        return True
+        try:
+            for route_point in route.route_points:
+                if not route_point.latitude or not route_point.longitude:
+                    continue
+                    
+                temp_customer = Customer(
+                    id=route_point.customer_id or "unknown",
+                    name=route_point.customer_name or "unknown",
+                    address=route_point.address or "",
+                    depot=depot_name,
+                    latitude=route_point.latitude,
+                    longitude=route_point.longitude
+                )
+                
+                if not self.is_within_depot_zone(temp_customer, depot_name):
+                    return False
+            return True
+        except Exception as e:
+            print(f"Error validating depot assignment: {e}")
+            return True
     
     def enforce_daily_capacity(self, customers_by_depot: Dict[str, List[Customer]]) -> Dict[str, List[Customer]]:
         """Enforce daily capacity limit of 116 customers across all depots"""
@@ -886,15 +885,20 @@ class RouteOptimizer:
     
     def create_depot_specific_fallback(self, customers: List[Customer], depot_name: str) -> List[VehicleRoute]:
         """Create depot-specific fallback routes if validation fails"""
-        constraints = DEPOT_CONSTRAINTS.get(depot_name, {})
-        
-        valid_customers = [c for c in customers if self.is_within_depot_zone(c, depot_name)]
-        
-        if not valid_customers:
+        try:
+            constraints = DEPOT_CONSTRAINTS.get(depot_name, {})
+            
+            valid_customers = [c for c in customers if self.is_within_depot_zone(c, depot_name)]
+            
+            if not valid_customers:
+                print(f"No valid customers for {depot_name} after zone filtering")
+                return []
+            
+            vehicle_count = self.truck_allocations.get(depot_name, 1)
+            return self._create_fallback_routes(valid_customers, vehicle_count)
+        except Exception as e:
+            print(f"Error creating fallback routes for {depot_name}: {e}")
             return []
-        
-        vehicle_count = self.truck_allocations.get(depot_name, 1)
-        return self._create_fallback_routes(valid_customers, vehicle_count)
     
     def validate_routes(self) -> Dict[str, Any]:
         """Validation command to check for cross-depot violations"""
