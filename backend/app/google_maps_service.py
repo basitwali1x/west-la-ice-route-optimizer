@@ -96,7 +96,7 @@ class GoogleMapsService:
                             else:
                                 all_results["rows"].append(row)
                 
-                await asyncio.sleep(0.1)
+                await asyncio.sleep(0.05)
         
         return all_results
     
