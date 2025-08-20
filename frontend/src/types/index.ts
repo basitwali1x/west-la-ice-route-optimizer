@@ -29,6 +29,7 @@ export interface VehicleRoute {
   route_points: RoutePoint[];
   total_distance_miles: number;
   total_time_minutes: number;
+  day?: string;
   compliance?: { [key: string]: boolean };
   violations?: string[];
 }
