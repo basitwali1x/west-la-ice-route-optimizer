@@ -148,6 +148,21 @@ export const api = {
     }
     return response.json();
   },
+
+  async optimizeCompleteWeeklyRoutes(request: RouteOptimizationRequest): Promise<RouteOptimizationResponse> {
+    const response = await fetch(`${API_URL}/optimize-complete-weekly-routes`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(request),
+    });
+    
+    if (!response.ok) {
+      throw new Error('Failed to optimize complete weekly routes');
+    }
+    return response.json();
+  },
 };
 
 export const resetWeeklyVisits = async (request: WeeklyResetRequest = {}) => {
@@ -216,25 +231,6 @@ export const optimizeWeeklyRoutes = async (request: RouteOptimizationRequest) =>
     return await response.json();
   } catch (error) {
     console.error('Error optimizing weekly routes:', error);
-    throw error;
-  }
-};
-
-export const optimizeCompleteWeeklyRoutes = async (request: RouteOptimizationRequest) => {
-  try {
-    const response = await fetch(`${API_URL}/optimize-complete-weekly-routes`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(request),
-    });
-    if (!response.ok) {
-      throw new Error('Failed to optimize complete weekly routes');
-    }
-    return await response.json();
-  } catch (error) {
-    console.error('Error optimizing complete weekly routes:', error);
     throw error;
   }
 };

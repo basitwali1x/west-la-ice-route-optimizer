@@ -391,38 +391,52 @@ class RouteOptimizer:
             return self._create_simple_routes(customers, num_vehicles, depot_name)
     
     def _create_simple_routes(self, customers: List[Customer], num_vehicles: int, depot_name: str) -> List[VehicleRoute]:
-        """Create simple routes when optimization fails"""
+        """Create simple routes when optimization fails with stop limit enforcement"""
         routes = []
-        customers_per_vehicle = len(customers) // num_vehicles + 1
+        MAX_STOPS_PER_VEHICLE = 25
         
-        for i in range(num_vehicles):
-            start_idx = i * customers_per_vehicle
-            end_idx = min((i + 1) * customers_per_vehicle, len(customers))
-            vehicle_customers = customers[start_idx:end_idx]
+        vehicle_routes = [[] for _ in range(num_vehicles)]
+        
+        for customer in customers:
+            best_vehicle = None
+            min_customers = float('inf')
             
-            if vehicle_customers:
-                route_points = []
-                for j, customer in enumerate(vehicle_customers):
-                    route_point = RoutePoint(
-                        customer_id=customer.id,
-                        customer_name=customer.name,
-                        address=customer.address,
-                        latitude=customer.latitude,
-                        longitude=customer.longitude,
-                        order=j + 1
-                    )
-                    route_points.append(route_point)
+            for i, route in enumerate(vehicle_routes):
+                if len(route) < MAX_STOPS_PER_VEHICLE and len(route) < min_customers:
+                    best_vehicle = i
+                    min_customers = len(route)
+            
+            if best_vehicle is not None:
+                vehicle_routes[best_vehicle].append(customer)
+            else:
+                print(f"⚠️ WARNING: Customer {customer.name} skipped - all vehicles at {MAX_STOPS_PER_VEHICLE} stop limit")
+        
+        for i, vehicle_customers in enumerate(vehicle_routes):
+            if not vehicle_customers:
+                continue
                 
-                route = VehicleRoute(
-                    vehicle_id=i,
-                    depot_name=depot_name,
-                    route_points=route_points,
-                    total_distance_miles=0.0,
-                    total_time_minutes=480.0,
-                    truck_id=f"{depot_name[0].upper()}{i + 1}",
-                    estimated_hours=8.0
+            route_points = []
+            for j, customer in enumerate(vehicle_customers):
+                route_point = RoutePoint(
+                    customer_id=customer.id,
+                    customer_name=customer.name,
+                    address=customer.address,
+                    latitude=customer.latitude,
+                    longitude=customer.longitude,
+                    order=j + 1
                 )
-                routes.append(route)
+                route_points.append(route_point)
+            
+            route = VehicleRoute(
+                vehicle_id=i,
+                depot_name=depot_name,
+                route_points=route_points,
+                total_distance_miles=0.0,
+                total_time_minutes=480.0,
+                truck_id=f"{depot_name[0].upper()}{i + 1}",
+                estimated_hours=8.0
+            )
+            routes.append(route)
         
         return routes
     
@@ -602,10 +616,12 @@ class RouteOptimizer:
         solution = routing.SolveWithParameters(search_parameters)
         
         if solution:
+            print(f"✅ OR-Tools optimization successful for {depot_name} with {len(customers)} customers")
             return await self._extract_routes(
                 manager, routing, solution, customers, geocoded_locations, distance_matrix, depot_name
             )
         else:
+            print(f"⚠️ OR-Tools optimization failed for {depot_name} with {len(customers)} customers - using fallback")
             return self._create_fallback_routes(customers, geocoded_locations, num_vehicles, depot_name)
     
     async def _extract_routes(self, manager, routing, solution, customers, geocoded_locations, distance_matrix, depot_name):
@@ -664,22 +680,30 @@ class RouteOptimizer:
         return routes
     
     def _create_fallback_routes(self, customers, geocoded_locations, num_vehicles, depot_name):
-        """Create fallback routes using simple round-robin assignment"""
+        """Create fallback routes using simple round-robin assignment with stop limits"""
         routes = []
+        MAX_STOPS_PER_VEHICLE = 25
         
-        customers_per_vehicle = len(customers) // num_vehicles
-        remainder = len(customers) % num_vehicles
+        vehicle_routes = [[] for _ in range(num_vehicles)]
         
-        start_idx = 0
-        for vehicle_id in range(num_vehicles):
-            vehicle_customers = customers_per_vehicle + (1 if vehicle_id < remainder else 0)
+        for customer in customers:
+            best_vehicle = None
+            min_customers = float('inf')
             
-            if vehicle_customers == 0:
+            for i, route in enumerate(vehicle_routes):
+                if len(route) < MAX_STOPS_PER_VEHICLE and len(route) < min_customers:
+                    best_vehicle = i
+                    min_customers = len(route)
+            
+            if best_vehicle is not None:
+                vehicle_routes[best_vehicle].append(customer)
+            else:
+                print(f"⚠️ WARNING: Customer {customer.name} skipped - all vehicles at {MAX_STOPS_PER_VEHICLE} stop limit")
+        
+        for vehicle_id, vehicle_customer_list in enumerate(vehicle_routes):
+            if not vehicle_customer_list:
                 continue
                 
-            end_idx = start_idx + vehicle_customers
-            vehicle_customer_list = customers[start_idx:end_idx]
-            
             route_points = []
             total_distance = 0
             
@@ -706,8 +730,6 @@ class RouteOptimizer:
                 total_time_minutes=total_distance * 2  # 2 minutes per mile
             )
             routes.append(vehicle_route)
-            
-            start_idx = end_idx
         
         return routes
     

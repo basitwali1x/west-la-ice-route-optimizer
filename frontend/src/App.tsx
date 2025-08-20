@@ -37,30 +37,6 @@ function App() {
     loadInitialData();
   }, []);
 
-  useEffect(() => {
-    const checkCompletion = async () => {
-      if (progress >= 98 && isOptimizing) {
-        try {
-          const status = await api.verifyCompletion();
-          if (status.complete) {
-            setProgress(100);
-            setDepotProgress({
-              'Leesville': 100,
-              'Lake Charles': 100,
-              'Lufkin': 100
-            });
-            setOptimizationComplete(true);
-          }
-        } catch (error) {
-          console.error('Failed to verify completion:', error);
-        }
-      }
-    };
-
-    if (progress >= 98) {
-      checkCompletion();
-    }
-  }, [progress, isOptimizing]);
 
   const loadInitialData = async () => {
     try {
@@ -154,45 +130,23 @@ function App() {
         progressInterval = null;
       }
       
-      setProgress(98);
-      
-      setTimeout(async () => {
-        try {
-          const status = await api.verifyCompletion();
-          if (status.complete) {
-            setProgress(100);
-            setDepotProgress({
-              'Leesville': 100,
-              'Lake Charles': 100,
-              'Lufkin': 100
-            });
-            setOptimizationComplete(true);
-            setOptimizationResult(result);
-          }
-        } catch (error) {
-          console.error('Failed to verify completion:', error);
-          setProgress(100);
-          setDepotProgress({
-            'Leesville': 100,
-            'Lake Charles': 100,
-            'Lufkin': 100
-          });
-          setOptimizationComplete(true);
-          setOptimizationResult(result);
-        }
+      setProgress(100);
+      setDepotProgress({
+        'Leesville': 100,
+        'Lake Charles': 100,
+        'Lufkin': 100
+      });
+      setOptimizationComplete(true);
+      setOptimizationResult(result);
+
+      setTimeout(() => {
+        setIsOptimizing(false);
       }, 500);
-      
+
       setTimeout(() => {
-        console.log('Resetting optimizationComplete after 2 seconds');
         setOptimizationComplete(false);
-      }, 2000);
-      
-      setTimeout(() => {
-        console.log('Resetting all states after 3 seconds, setting isOptimizing to false');
         setProgress(0);
         setDepotProgress({});
-        setOptimizationComplete(false);
-        setIsOptimizing(false);
       }, 3000);
       
     } catch (err) {
@@ -206,7 +160,6 @@ function App() {
       setError('Failed to optimize routes. Please try again.');
       console.error('Error optimizing routes:', err);
       setIsOptimizing(false);
-    } finally {
     }
   };
 
@@ -256,7 +209,7 @@ function App() {
       console.log('Calling API optimizeRoutes with:', { customers: customers.length, vehicleDistribution });
       let result;
       try {
-        result = await api.optimizeRoutes({
+        result = await api.optimizeCompleteWeeklyRoutes({
           customers,
           num_vehicles: numVehicles,
           depot_addresses: [
