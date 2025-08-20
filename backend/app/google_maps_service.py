@@ -223,10 +223,20 @@ class GoogleMapsService:
                             print(f"DEBUG: Found exact CSV match: ({lat}, {lng})")
                             return (lat, lng)
                         
-                        normalized_csv = csv_address.replace('  ', ' ').strip()
-                        normalized_input = address.replace(',', '').replace('  ', ' ').strip()
+                        normalized_csv_1 = csv_address.strip().lower()
+                        normalized_csv_2 = csv_address.replace('  ', ' ').strip().lower()
                         
-                        if normalized_csv.lower() == normalized_input.lower() and row['Latitude'] and row['Longitude']:
+                        normalized_input_1 = address.strip().lower()
+                        normalized_input_2 = address.replace(',', '').strip().lower()
+                        normalized_input_3 = address.replace('  ', ' ').strip().lower()
+                        
+                        if ((normalized_csv_1 == normalized_input_1 or 
+                             normalized_csv_1 == normalized_input_2 or
+                             normalized_csv_1 == normalized_input_3 or
+                             normalized_csv_2 == normalized_input_1 or
+                             normalized_csv_2 == normalized_input_2 or
+                             normalized_csv_2 == normalized_input_3) and 
+                            row['Latitude'] and row['Longitude']):
                             lat = float(row['Latitude'])
                             lng = float(row['Longitude'])
                             print(f"DEBUG: Found normalized CSV match: ({lat}, {lng})")
