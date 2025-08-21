@@ -5,6 +5,7 @@ import os
 from .google_sheets_service import GoogleSheetsService
 from datetime import datetime, timedelta
 import random
+import math
 
 def load_west_la_ice_customers() -> List[Customer]:
     """
@@ -87,12 +88,13 @@ def load_west_la_ice_customers() -> List[Customer]:
                 depot = excel_customer['depot']
             else:
                 address = excel_customer['address']
-                if 'Lufkin' in address or 'TX 759' in address:
-                    depot = 'Lufkin'
-                elif 'Lake Charles' in address or 'LA 706' in address:
-                    depot = 'Lake Charles'
+                address_key = address.lower().replace(" ", "").replace(",", "")
+                if address_key in coordinates_map:
+                    customer_lat = coordinates_map[address_key]['latitude']
+                    customer_lng = coordinates_map[address_key]['longitude']
+                    depot = assign_depot_by_pattern_with_proximity_fallback(address, customer_lat, customer_lng)
                 else:
-                    depot = 'Leesville'
+                    depot = assign_depot_by_pattern_with_proximity_fallback(address)
             
             latitude = None
             longitude = None
@@ -150,12 +152,12 @@ def load_west_la_ice_customers() -> List[Customer]:
                             assigned_depot = customer_data.get("depot", depot)
                             if assigned_depot == "all":
                                 address = customer_data["address"]
-                                if 'Lufkin' in address or 'TX 759' in address:
-                                    assigned_depot = 'Lufkin'
-                                elif 'Lake Charles' in address or 'LA 706' in address:
-                                    assigned_depot = 'Lake Charles'
+                                customer_lat = customer_data.get("latitude")
+                                customer_lng = customer_data.get("longitude")
+                                if customer_lat is not None and customer_lng is not None:
+                                    assigned_depot = assign_depot_by_pattern_with_proximity_fallback(address, float(customer_lat), float(customer_lng))
                                 else:
-                                    assigned_depot = 'Leesville'
+                                    assigned_depot = assign_depot_by_pattern_with_proximity_fallback(address)
                             
                             customer = Customer(
                                 id=len(all_customers) + 1,
@@ -182,6 +184,65 @@ def load_west_la_ice_customers() -> List[Customer]:
             print(f"Error loading from Google Sheets: {e}")
     
     return []
+
+def haversine_distance(lat1: float, lng1: float, lat2: float, lng2: float) -> float:
+    """Calculate the great circle distance between two points on Earth in miles"""
+    dlat = math.radians(lat2 - lat1)
+    dlng = math.radians(lng2 - lng1)
+    a = (math.sin(dlat/2) * math.sin(dlat/2) + 
+         math.cos(math.radians(lat1)) * math.cos(math.radians(lat2)) * 
+         math.sin(dlng/2) * math.sin(dlng/2))
+    c = 2 * math.atan2(math.sqrt(a), math.sqrt(1-a))
+    return 3959 * c  # Earth radius in miles
+
+def assign_depot_by_proximity(customer_lat: float, customer_lng: float) -> str:
+    """Assign depot based on closest geographic distance"""
+    depot_coordinates = {
+        "Lufkin": (31.3382, -94.7291),
+        "Leesville": (31.1435, -93.2609), 
+        "Lake Charles": (30.2266, -93.2174)
+    }
+    
+    closest_depot = None
+    min_distance = float('inf')
+    
+    for depot, (depot_lat, depot_lng) in depot_coordinates.items():
+        distance = haversine_distance(customer_lat, customer_lng, depot_lat, depot_lng)
+        if distance < min_distance:
+            min_distance = distance
+            closest_depot = depot
+    
+    return closest_depot
+
+def assign_depot_by_pattern_with_proximity_fallback(address: str, customer_lat: float = None, customer_lng: float = None) -> str:
+    """Assign depot using geographic proximity when coordinates available, fallback to improved pattern matching"""
+    if customer_lat is not None and customer_lng is not None:
+        assigned_depot = assign_depot_by_proximity(customer_lat, customer_lng)
+        print(f"DEBUG: Geographic assignment for {address}: {assigned_depot}")
+        return assigned_depot
+    
+    address_lower = address.lower()
+    
+    texas_indicators = [
+        'tx-', 'texas', 'zavalla', 'ratcliff', 'hemphill', 'newton', 
+        'huntington', 'tx 759', 'lufkin', 'jasper', 'angelina', 
+        'nacogdoches', 'polk', 'tyler', 'texas highway', 'texas hwy',
+        ' tx ', 'burkville'
+    ]
+    
+    lake_charles_indicators = ['lake charles', 'la 706']
+    
+    if any(indicator in address_lower for indicator in texas_indicators):
+        print(f"DEBUG: Texas indicator detected in {address}, assigning to Lufkin")
+        return 'Lufkin'
+    
+    elif any(indicator in address_lower for indicator in lake_charles_indicators):
+        print(f"DEBUG: Lake Charles indicator detected in {address}, assigning to Lake Charles")
+        return 'Lake Charles'
+    
+    else:
+        print(f"DEBUG: Pattern fallback assignment for {address}: Leesville")
+        return 'Leesville'
 
 def get_customer_count() -> int:
     """Return the total number of customers"""

@@ -27,7 +27,7 @@ LUFKIN_MONDAY_STOPS = [
 
 DEPOT_CONSTRAINTS = {
     "Lufkin": {
-        "max_distance": 50, 
+        "max_distance": 100, 
         "max_stops_monday": 15, 
         "max_hours": 10,
         "weekly_capacity": 192  # Weekly customer limit for balanced distribution
@@ -521,11 +521,20 @@ class RouteOptimizer:
     async def _optimize_single_depot_routes(self, customers: List[Customer], depot_address: str, depot_name: str, num_vehicles: int) -> List[VehicleRoute]:
         all_locations = [depot_address] + [customer.address for customer in customers]
         
-        print(f"Ensuring consistent coordinates for {len(all_locations)} locations in {depot_name} depot")
+        print(f"Using customer coordinates for {len(all_locations)} locations in {depot_name} depot")
         geocoded_locations = []
-        for location in all_locations:
-            lat, lng = self.google_maps._generate_realistic_coordinates(location)
-            geocoded_locations.append((lat, lng))
+        
+        depot_lat, depot_lng = self.google_maps._generate_realistic_coordinates(depot_address)
+        geocoded_locations.append((depot_lat, depot_lng))
+        
+        for customer in customers:
+            if customer.latitude is not None and customer.longitude is not None:
+                print(f"DEBUG: Using actual coordinates for {customer.name}: ({customer.latitude}, {customer.longitude})")
+                geocoded_locations.append((customer.latitude, customer.longitude))
+            else:
+                print(f"DEBUG: Generating coordinates for {customer.name} (no coordinates available)")
+                lat, lng = self.google_maps._generate_realistic_coordinates(customer.address)
+                geocoded_locations.append((lat, lng))
         
         distance_matrix = await self.google_maps.calculate_distance_matrix(all_locations)
         
@@ -586,7 +595,7 @@ class RouteOptimizer:
             routing.AddDimension(
                 transit_callback_index,
                 0,  # no slack
-                5000000,  # 50 miles * 100 (for int conversion)
+                10000000,  # 100 miles * 100 (for int conversion)
                 True,  # start cumul to zero
                 'LufkinDistance'
             )
@@ -708,7 +717,11 @@ class RouteOptimizer:
             total_distance = 0
             
             for order, customer in enumerate(vehicle_customer_list):
-                lat, lng = geocoded_locations[customers.index(customer) + 1]  # +1 for depot offset
+                if customer.latitude is not None and customer.longitude is not None:
+                    lat, lng = customer.latitude, customer.longitude
+                else:
+                    customer_index = customers.index(customer)
+                    lat, lng = geocoded_locations[customer_index + 1]  # +1 for depot offset
                 
                 route_point = RoutePoint(
                     customer_id=customer.id,

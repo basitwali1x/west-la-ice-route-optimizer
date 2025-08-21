@@ -192,19 +192,48 @@ class GoogleMapsService:
         return distance_matrix
     
     def _get_depot_for_location(self, location: str) -> str:
-        """Determine which depot a location belongs to"""
+        """Determine which depot a location belongs to using geographic proximity when possible"""
         if location == "1707 Smart Street, Leesville, LA 71446":
             return "Leesville"
         elif location == "220 Bunker Road, Lake Charles, LA 70615":
             return "Lake Charles"
         elif location == "1107 Weiner St, Lufkin, TX 75904":
             return "Lufkin"
-        elif "Lufkin" in location or "TX" in location or "Huntington" in location or "Zavalla" in location or "Ratcliff" in location:
+        
+        lat, lng = self._generate_realistic_coordinates(location)
+        depot_coordinates = {
+            "Lufkin": (31.3382, -94.7291),
+            "Leesville": (31.1435, -93.2609), 
+            "Lake Charles": (30.2266, -93.2174)
+        }
+        
+        closest_depot = None
+        min_distance = float('inf')
+        
+        for depot, (depot_lat, depot_lng) in depot_coordinates.items():
+            distance = self._haversine_distance(lat, lng, depot_lat, depot_lng)
+            if distance < min_distance:
+                min_distance = distance
+                closest_depot = depot
+        
+        east_texas_counties = ["angelina", "nacogdoches", "polk", "tyler", "jasper"]
+        location_lower = location.lower()
+        if closest_depot == "Leesville" and any(county in location_lower for county in east_texas_counties):
+            print(f"DEBUG: East Texas county override for {location}, assigning to Lufkin")
             return "Lufkin"
-        elif "Lake Charles" in location or "LA 706" in location:
-            return "Lake Charles"
-        else:
-            return "Leesville"
+        
+        return closest_depot
+    
+    def _haversine_distance(self, lat1: float, lng1: float, lat2: float, lng2: float) -> float:
+        """Calculate the great circle distance between two points on Earth in miles"""
+        import math
+        dlat = math.radians(lat2 - lat1)
+        dlng = math.radians(lng2 - lng1)
+        a = (math.sin(dlat/2) * math.sin(dlat/2) + 
+             math.cos(math.radians(lat1)) * math.cos(math.radians(lat2)) * 
+             math.sin(dlng/2) * math.sin(dlng/2))
+        c = 2 * math.atan2(math.sqrt(a), math.sqrt(1-a))
+        return 3959 * c  # Earth radius in miles
     
     def _is_cross_depot_travel(self, origin: str, destination: str) -> bool:
         """Check if travel is between different depots"""

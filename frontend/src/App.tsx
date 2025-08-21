@@ -462,7 +462,7 @@ function App() {
                     </div>
                     <div className="space-y-2">
                       <label className="text-xs font-medium text-gray-700">Lufkin (Monday)</label>
-                      <div className="text-xs text-red-600">Max: 50 miles, 15 stops, 10 hours</div>
+                      <div className="text-xs text-red-600">Max: 100 miles, 15 stops, 10 hours</div>
                       <div className="text-xs text-gray-600">Vehicles: {vehicleDistribution.Lufkin} (Truck 1 only)</div>
                       <div className="text-xs text-blue-600">Service time: 30min/stop</div>
                     </div>
