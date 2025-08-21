@@ -27,7 +27,7 @@ LUFKIN_MONDAY_STOPS = [
 
 DEPOT_CONSTRAINTS = {
     "Lufkin": {
-        "max_distance": 50, 
+        "max_distance": 100, 
         "max_stops_monday": 15, 
         "max_hours": 10,
         "weekly_capacity": 192  # Weekly customer limit for balanced distribution
@@ -595,7 +595,7 @@ class RouteOptimizer:
             routing.AddDimension(
                 transit_callback_index,
                 0,  # no slack
-                5000000,  # 50 miles * 100 (for int conversion)
+                10000000,  # 100 miles * 100 (for int conversion)
                 True,  # start cumul to zero
                 'LufkinDistance'
             )
