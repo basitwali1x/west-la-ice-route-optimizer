@@ -52,8 +52,19 @@ export function DriverDashboard({ truckId = 'L1', day = 'Monday' }: DriverDashbo
     try {
       const result = await api.getDriverRoutes(selectedTruck, selectedDay);
       setRoutes(result.routes || []);
+      
+      if (!result.routes || result.routes.length === 0) {
+        setError(`No routes found for truck ${selectedTruck} on ${selectedDay}. Please run route optimization first or sync data from Google Sheets.`);
+      }
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to fetch driver routes');
+      const errorMessage = err instanceof Error ? err.message : 'Failed to fetch driver routes';
+      if (errorMessage.includes('500')) {
+        setError('Server error while fetching routes. Please check if the backend is running and try again.');
+      } else if (errorMessage.includes('404')) {
+        setError(`No route data found for truck ${selectedTruck} on ${selectedDay}. Please run route optimization first.`);
+      } else {
+        setError(errorMessage);
+      }
       setRoutes([]);
     } finally {
       setIsLoading(false);
@@ -173,12 +184,12 @@ export function DriverDashboard({ truckId = 'L1', day = 'Monday' }: DriverDashbo
         </Alert>
       )}
 
-      {routes.length === 0 && !error && (
+      {routes.length === 0 && !error && !isLoading && (
         <Alert>
           <AlertTriangle className="h-4 w-4" />
           <AlertDescription>
             No routes found for truck {selectedTruck} on {selectedDay}. 
-            Try syncing data from Google Sheets first.
+            Please run route optimization first or sync data from Google Sheets.
           </AlertDescription>
         </Alert>
       )}
