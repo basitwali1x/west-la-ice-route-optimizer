@@ -66,7 +66,7 @@ class RouteOptimizer:
         self.google_maps = GoogleMapsService()
         self.depot_radius = depot_radius
         self.max_stops = max_stops
-        self.truck_allocations = truck_allocations or {"Lufkin": 3, "Leesville": 3, "Lake Charles": 2}
+        self.truck_allocations = truck_allocations or {"Lufkin": 1, "Leesville": 5, "Lake Charles": 2}
     
     def assign_priority(self, customer: Customer) -> str:
         """Assign priority level based on last visit date"""
@@ -130,6 +130,51 @@ class RouteOptimizer:
         
         return unvisited
     
+    def calculate_daily_capacity_per_depot(self, vehicle_distribution: Optional[Dict[str, int]] = None) -> Dict[str, int]:
+        """Calculate daily customer capacity for each depot based on trucks and max stops"""
+        daily_capacity = {}
+        
+        for depot_name in DEPOT_CONSTRAINTS.keys():
+            trucks = self._calculate_vehicles_per_depot(depot_name, 8, vehicle_distribution)
+            max_stops = DEPOT_CONSTRAINTS[depot_name].get("max_stops", 15)
+            daily_capacity[depot_name] = trucks * max_stops
+            
+        return daily_capacity
+    
+    def distribute_customers_by_day_and_depot(self, customers: List[Customer], vehicle_distribution: Optional[Dict[str, int]] = None) -> Dict[str, List[Customer]]:
+        """Distribute customers across Monday-Friday based on depot capacity and priority"""
+        days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"]
+        daily_capacity = self.calculate_daily_capacity_per_depot(vehicle_distribution)
+        
+        total_daily_capacity = sum(daily_capacity.values())
+        
+        urgent_customers = [c for c in customers if c.priority_level == "URGENT"]
+        high_customers = [c for c in customers if c.priority_level == "HIGH"]
+        standard_customers = [c for c in customers if c.priority_level == "STANDARD"]
+        
+        daily_assignments = {day: [] for day in days}
+        
+        for i, customer in enumerate(urgent_customers + high_customers):
+            day = days[i % len(days)]
+            customer.day = day
+            daily_assignments[day].append(customer)
+        
+        remaining_customers = standard_customers[:]
+        
+        for day in days:
+            current_count = len(daily_assignments[day])
+            remaining_capacity = total_daily_capacity - current_count
+            
+            if remaining_capacity > 0 and remaining_customers:
+                customers_for_day = remaining_customers[:remaining_capacity]
+                remaining_customers = remaining_customers[remaining_capacity:]
+                
+                for customer in customers_for_day:
+                    customer.day = day
+                    daily_assignments[day].append(customer)
+        
+        return daily_assignments
+    
     async def optimize_weekly_routes(self, customers: List[Customer], depot_addresses: List[str], num_vehicles: int = 8, vehicle_distribution: Optional[Dict[str, int]] = None) -> List[VehicleRoute]:
         """Optimize routes for weekly visits with priority and capacity constraints"""
         unvisited_customers = self.filter_unvisited_customers(customers)
@@ -143,23 +188,16 @@ class RouteOptimizer:
         return await self.optimize_routes(unvisited_customers, depot_addresses, num_vehicles, vehicle_distribution)
     
     async def optimize_complete_weekly_routes(self, customers: List[Customer], depot_addresses: List[str], num_vehicles: int = 8, vehicle_distribution: Optional[Dict[str, int]] = None) -> List[VehicleRoute]:
-        """Optimize routes grouped by days (Monday-Friday) with ~116 customers per day"""
-        days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"]
-        customers_per_day = len(customers) // len(days)
+        """Optimize routes grouped by days (Monday-Friday) with formula-based daily distribution"""
+        
+        daily_assignments = self.distribute_customers_by_day_and_depot(customers, vehicle_distribution)
         
         all_routes = []
         
-        for day_index, day in enumerate(days):
-            start_index = day_index * customers_per_day
-            if day_index == len(days) - 1:
-                day_customers = customers[start_index:]
-            else:
-                end_index = start_index + customers_per_day
-                day_customers = customers[start_index:end_index]
-            
-            for customer in day_customers:
-                customer.day = day
-            
+        for day, day_customers in daily_assignments.items():
+            if not day_customers:
+                continue
+                
             current_assignments = {"Lufkin": 0, "Leesville": 0, "Lake Charles": 0}
             for customer in day_customers:
                 assigned_depot = self.assign_depot_with_capacity(customer, current_assignments)

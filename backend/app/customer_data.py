@@ -86,15 +86,17 @@ def load_west_la_ice_customers() -> List[Customer]:
             if excel_customer['depot'] in depot_mapping:
                 depot = excel_customer['depot']
             else:
-                address = excel_customer['address']
-                if ('Lufkin' in address or 'TX' in address or 'Huntington' in address or 
-                    'Zavalla' in address or 'Ratcliff' in address or 'TX 759' in address or
-                    'Hwy 69' in address or 'TX-7' in address or 'Palestine' in address or
-                    'Jacksonville' in address or 'Henderson' in address or 'Kilgore' in address or
-                    'Nacogdoches' in address or 'Longview' in address or 'Gladewater' in address or
-                    'White Oak' in address or 'Hallsville' in address or 'Tatum' in address):
+                address = excel_customer['address'].upper()
+                if any(pattern in address for pattern in [
+                    'LUFKIN', 'TX', 'TEXAS', 'HUNTINGTON', 'ZAVALLA', 'RATCLIFF', 
+                    'TX 759', 'HWY 69', 'TX-7', 'PALESTINE', 'JACKSONVILLE', 
+                    'HENDERSON', 'KILGORE', 'NACOGDOCHES', 'LONGVIEW', 
+                    'GLADEWATER', 'WHITE OAK', 'HALLSVILLE', 'TATUM'
+                ]):
                     depot = 'Lufkin'
-                elif 'Lake Charles' in address or 'LA 706' in address:
+                elif any(pattern in address for pattern in [
+                    'LAKE CHARLES', 'LA 706', 'CALCASIEU', 'WESTLAKE', 'SULPHUR'
+                ]):
                     depot = 'Lake Charles'
                 else:
                     depot = 'Leesville'
@@ -116,7 +118,7 @@ def load_west_la_ice_customers() -> List[Customer]:
                 address=excel_customer['address'],
                 depot=depot,
                 truck=f"Truck {(i % 8) + 1}",
-                day="Monday",
+                day=None,
                 phone=excel_customer['phone'],
                 last_visit_date=last_visit,
                 visited_this_week=random.choice([True, False]),
@@ -154,15 +156,17 @@ def load_west_la_ice_customers() -> List[Customer]:
                             
                             assigned_depot = customer_data.get("depot", depot)
                             if assigned_depot == "all":
-                                address = customer_data["address"]
-                                if ('Lufkin' in address or 'TX' in address or 'Huntington' in address or 
-                                    'Zavalla' in address or 'Ratcliff' in address or 'TX 759' in address or
-                                    'Hwy 69' in address or 'TX-7' in address or 'Palestine' in address or
-                                    'Jacksonville' in address or 'Henderson' in address or 'Kilgore' in address or
-                                    'Nacogdoches' in address or 'Longview' in address or 'Gladewater' in address or
-                                    'White Oak' in address or 'Hallsville' in address or 'Tatum' in address):
+                                address = customer_data["address"].upper()
+                                if any(pattern in address for pattern in [
+                                    'LUFKIN', 'TX', 'TEXAS', 'HUNTINGTON', 'ZAVALLA', 'RATCLIFF', 
+                                    'TX 759', 'HWY 69', 'TX-7', 'PALESTINE', 'JACKSONVILLE', 
+                                    'HENDERSON', 'KILGORE', 'NACOGDOCHES', 'LONGVIEW', 
+                                    'GLADEWATER', 'WHITE OAK', 'HALLSVILLE', 'TATUM'
+                                ]):
                                     assigned_depot = 'Lufkin'
-                                elif 'Lake Charles' in address or 'LA 706' in address:
+                                elif any(pattern in address for pattern in [
+                                    'LAKE CHARLES', 'LA 706', 'CALCASIEU', 'WESTLAKE', 'SULPHUR'
+                                ]):
                                     assigned_depot = 'Lake Charles'
                                 else:
                                     assigned_depot = 'Leesville'
@@ -173,7 +177,7 @@ def load_west_la_ice_customers() -> List[Customer]:
                                 address=customer_data["address"],
                                 depot=assigned_depot,
                                 truck=f"Truck {(i % 8) + 1}",
-                                day="Monday",
+                                day=None,
                                 phone=customer_data.get("phone", ""),
                                 last_visit_date=last_visit,
                                 visited_this_week=random.choice([True, False]),
