@@ -90,7 +90,7 @@ async def optimize_routes(request: RouteOptimizationRequest):
             )
             depot_locations.append(depot_location)
         
-        return RouteOptimizationResponse(
+        result = RouteOptimizationResponse(
             routes=routes,
             total_distance_miles=round(total_distance, 2),
             total_time_minutes=round(total_time, 2),
@@ -99,6 +99,11 @@ async def optimize_routes(request: RouteOptimizationRequest):
             progress=100,
             constraint_violations=all_violations
         )
+        
+        global optimization_results_cache
+        optimization_results_cache = result.dict()
+        
+        return result
         
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error optimizing routes: {str(e)}")
@@ -165,42 +170,105 @@ async def optimize_with_sheets(sheets_sync: SheetsSync):
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to optimize with sheets: {str(e)}")
 
+optimization_results_cache = {}
+
 @app.get("/driver-routes/{truck_id}")
 async def get_driver_routes(truck_id: str, day: str = "Monday"):
     """Get route data for a specific driver/truck"""
     try:
-        sheet_id = os.getenv("DEFAULT_SHEET_ID", "1priXmXhtP2vVSQ1XUa-Y18-O96OsZ9Qw")
-        sheet_data = sheets_service.sync_from_sheets(sheet_id)
-        
-        if "error" in sheet_data:
-            raise HTTPException(status_code=400, detail=sheet_data["error"])
-        
         driver_routes = []
-        for assignment in sheet_data.get("route_assignments", []):
-            if assignment.get("truck_id") == truck_id and assignment.get("day") == day:
-                route_points = []
-                for stop in assignment.get("stop_sequence", []):
-                    route_point = {
-                        "customer_id": stop.get("customer_id", ""),
-                        "customer_name": stop.get("customer_name", ""),
-                        "address": stop.get("address", ""),
-                        "latitude": stop.get("latitude", 0.0),
-                        "longitude": stop.get("longitude", 0.0),
-                        "estimated_time": stop.get("estimated_time", ""),
-                        "priority": stop.get("priority", False)
-                    }
-                    route_points.append(route_point)
-                
-                driver_route = DriverRoute(
-                    truck_id=truck_id,
-                    depot=assignment.get("depot", ""),
-                    day=day,
-                    stops=route_points,
-                    total_distance=0.0,
-                    estimated_hours=float(assignment.get("estimated_time", "8").split()[0]) if assignment.get("estimated_time") else 8.0,
-                    priority_stops=[stop.get("customer_id", "") for stop in assignment.get("stop_sequence", []) if stop.get("priority")]
-                )
-                driver_routes.append(driver_route)
+        
+        print(f"DEBUG: Driver routes request for truck_id={truck_id}, day={day}")
+        print(f"DEBUG: optimization_results_cache exists: {bool(optimization_results_cache)}")
+        
+        if optimization_results_cache:
+            available_vehicle_ids = [route.get("vehicle_id") for route in optimization_results_cache.get("routes", [])]
+            print(f"DEBUG: Available vehicle IDs in cache: {available_vehicle_ids}")
+            
+            truck_mapping = {
+                "L1": (1, "Leesville"), "L2": (2, "Leesville"), "L3": (3, "Leesville"), 
+                "L4": (4, "Leesville"), "L5": (5, "Leesville"),
+                "Le1": (1, "Leesville"), "Le2": (2, "Leesville"), "Le3": (3, "Leesville"),
+                "Le4": (4, "Leesville"), "Le5": (5, "Leesville"),
+                "LC1": (1, "Lake Charles"), "LC2": (2, "Lake Charles"),
+                "Lu1": (1, "Lufkin"), "Lf1": (1, "Lufkin")
+            }
+            
+            target_vehicle_id, target_depot = truck_mapping.get(truck_id, (None, None))
+            print(f"DEBUG: Mapped truck_id={truck_id} to vehicle_id={target_vehicle_id}, depot={target_depot}")
+            
+            for route in optimization_results_cache.get("routes", []):
+                print(f"DEBUG: Checking route with vehicle_id={route.get('vehicle_id')}, depot={route.get('depot_name')}")
+                if (route.get("vehicle_id") == target_vehicle_id and 
+                    route.get("depot_name") == target_depot and 
+                    route.get("day", "Monday") == day):
+                    print(f"DEBUG: Found matching route! Processing route data...")
+                    print(f"DEBUG: Route keys: {list(route.keys())}")
+                    print(f"DEBUG: Route points count: {len(route.get('route_points', []))}")
+                    
+                    try:
+                        route_points = []
+                        for i, point in enumerate(route.get("route_points", [])):
+                            print(f"DEBUG: Processing route point {i}: {point}")
+                            route_point = {
+                                "customer_id": point.get("customer_id", ""),
+                                "customer_name": point.get("customer_name", ""),
+                                "address": point.get("address", ""),
+                                "latitude": point.get("latitude", 0.0),
+                                "longitude": point.get("longitude", 0.0),
+                                "estimated_time": f"{point.get('order', 0) * 30 + 480} minutes",
+                                "priority": False,
+                                "order": point.get("order", i + 1)
+                            }
+                            route_points.append(route_point)
+                        
+                        print(f"DEBUG: Creating DriverRoute object...")
+                        driver_route = DriverRoute(
+                            truck_id=truck_id,
+                            depot=route.get("depot_name", ""),
+                            day=day,
+                            stops=route_points,
+                            total_distance=route.get("total_distance_miles", 0.0),
+                            estimated_hours=route.get("total_time_minutes", 480) / 60.0,
+                            priority_stops=[]
+                        )
+                        driver_routes.append(driver_route)
+                        print(f"DEBUG: Successfully created driver route with {len(route_points)} stops")
+                    except Exception as e:
+                        print(f"DEBUG: Error processing route: {str(e)}")
+                        import traceback
+                        traceback.print_exc()
+        
+        if not driver_routes:
+            sheet_id = os.getenv("DEFAULT_SHEET_ID", "1priXmXhtP2vVSQ1XUa-Y18-O96OsZ9Qw")
+            sheet_data = sheets_service.sync_from_sheets(sheet_id)
+            
+            if "error" not in sheet_data:
+                for assignment in sheet_data.get("route_assignments", []):
+                    if assignment.get("truck_id") == truck_id and assignment.get("day") == day:
+                        route_points = []
+                        for stop in assignment.get("stop_sequence", []):
+                            route_point = {
+                                "customer_id": stop.get("customer_id", ""),
+                                "customer_name": stop.get("customer_name", ""),
+                                "address": stop.get("address", ""),
+                                "latitude": stop.get("latitude", 0.0),
+                                "longitude": stop.get("longitude", 0.0),
+                                "estimated_time": stop.get("estimated_time", ""),
+                                "priority": stop.get("priority", False)
+                            }
+                            route_points.append(route_point)
+                        
+                        driver_route = DriverRoute(
+                            truck_id=truck_id,
+                            depot=assignment.get("depot", ""),
+                            day=day,
+                            stops=route_points,
+                            total_distance=0.0,
+                            estimated_hours=float(assignment.get("estimated_time", "8").split()[0]) if assignment.get("estimated_time") else 8.0,
+                            priority_stops=[stop.get("customer_id", "") for stop in assignment.get("stop_sequence", []) if stop.get("priority")]
+                        )
+                        driver_routes.append(driver_route)
         
         return {
             "truck_id": truck_id,
@@ -480,7 +548,7 @@ async def optimize_weekly_routes(request: RouteOptimizationRequest):
             )
             depot_locations.append(depot_location)
         
-        return RouteOptimizationResponse(
+        result = RouteOptimizationResponse(
             routes=routes,
             total_distance_miles=round(total_distance, 2),
             total_time_minutes=round(total_time, 2),
@@ -489,6 +557,11 @@ async def optimize_weekly_routes(request: RouteOptimizationRequest):
             progress=100,
             constraint_violations=all_violations
         )
+        
+        global optimization_results_cache
+        optimization_results_cache = result.dict()
+        
+        return result
         
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error optimizing weekly routes: {str(e)}")
@@ -541,7 +614,7 @@ async def optimize_complete_weekly_routes(request: RouteOptimizationRequest):
             )
             depot_locations.append(depot_location)
         
-        return RouteOptimizationResponse(
+        result = RouteOptimizationResponse(
             routes=routes,
             total_distance_miles=round(total_distance, 2),
             total_time_minutes=round(total_time, 2),
@@ -550,6 +623,11 @@ async def optimize_complete_weekly_routes(request: RouteOptimizationRequest):
             progress=100,
             constraint_violations=all_violations
         )
+        
+        global optimization_results_cache
+        optimization_results_cache = result.dict()
+        
+        return result
         
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error optimizing complete weekly routes: {str(e)}")
