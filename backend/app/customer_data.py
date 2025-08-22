@@ -91,7 +91,7 @@ def load_west_la_ice_customers() -> List[Customer]:
                     'LUFKIN', 'TX', 'TEXAS', 'HUNTINGTON', 'ZAVALLA', 'RATCLIFF', 
                     'TX 759', 'HWY 69', 'TX-7', 'PALESTINE', 'JACKSONVILLE', 
                     'HENDERSON', 'KILGORE', 'NACOGDOCHES', 'LONGVIEW', 
-                    'GLADEWATER', 'WHITE OAK', 'HALLSVILLE', 'TATUM'
+                    'GLADEWATER', 'WHITE OAK', 'HALLSVILLE', 'TATUM', 'JASPER'
                 ]):
                     depot = 'Lufkin'
                 elif any(pattern in address for pattern in [
@@ -161,7 +161,7 @@ def load_west_la_ice_customers() -> List[Customer]:
                                     'LUFKIN', 'TX', 'TEXAS', 'HUNTINGTON', 'ZAVALLA', 'RATCLIFF', 
                                     'TX 759', 'HWY 69', 'TX-7', 'PALESTINE', 'JACKSONVILLE', 
                                     'HENDERSON', 'KILGORE', 'NACOGDOCHES', 'LONGVIEW', 
-                                    'GLADEWATER', 'WHITE OAK', 'HALLSVILLE', 'TATUM'
+                                    'GLADEWATER', 'WHITE OAK', 'HALLSVILLE', 'TATUM', 'JASPER'
                                 ]):
                                     assigned_depot = 'Lufkin'
                                 elif any(pattern in address for pattern in [
