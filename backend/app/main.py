@@ -5,7 +5,7 @@ import os
 from typing import List
 from datetime import datetime
 
-from .models import Customer, RouteOptimizationRequest, RouteOptimizationResponse, VehicleRoute, DepotLocation, RouteValidationRequest, RouteValidationResponse, SheetsSync, TruckAssignment, DriverRoute, SheetsData, WeeklyVisitStatus, WeeklyResetRequest, VisitTrackingUpdate
+from .models import Customer, RouteOptimizationRequest, RouteOptimizationResponse, VehicleRoute, DepotLocation, RouteValidationRequest, RouteValidationResponse, SheetsSync, TruckAssignment, DriverRoute, SheetsData, WeeklyVisitStatus, WeeklyResetRequest, VisitTrackingUpdate, CustomerCreateRequest, CustomerUpdateRequest, FourWeekScheduleResponse
 from .customer_data import load_west_la_ice_customers, get_customer_count
 from .route_optimizer import RouteOptimizer, DEPOT_CONSTRAINTS
 from .google_maps_service import GoogleMapsService
@@ -631,3 +631,109 @@ async def optimize_complete_weekly_routes(request: RouteOptimizationRequest):
         
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error optimizing complete weekly routes: {str(e)}")
+
+@app.post("/customers")
+async def create_customer(customer: CustomerCreateRequest):
+    """Create a new customer"""
+    try:
+        customers = load_west_la_ice_customers()
+        new_id = max([c.id for c in customers]) + 1 if customers else 1
+        
+        new_customer = Customer(
+            id=new_id,
+            name=customer.name,
+            address=customer.address,
+            depot=customer.depot,
+            phone=customer.phone,
+            priority_level=customer.priority_level,
+            weekly_visit_required=customer.weekly_visit_required
+        )
+        
+        return {"status": "success", "customer": new_customer}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error creating customer: {str(e)}")
+
+@app.put("/customers/{customer_id}")
+async def update_customer(customer_id: int, customer: CustomerUpdateRequest):
+    """Update an existing customer"""
+    try:
+        customers = load_west_la_ice_customers()
+        
+        customer_to_update = next((c for c in customers if c.id == customer_id), None)
+        if not customer_to_update:
+            raise HTTPException(status_code=404, detail="Customer not found")
+        
+        if customer.name is not None:
+            customer_to_update.name = customer.name
+        if customer.address is not None:
+            customer_to_update.address = customer.address
+        if customer.depot is not None:
+            customer_to_update.depot = customer.depot
+        if customer.phone is not None:
+            customer_to_update.phone = customer.phone
+        if customer.priority_level is not None:
+            customer_to_update.priority_level = customer.priority_level
+        if customer.weekly_visit_required is not None:
+            customer_to_update.weekly_visit_required = customer.weekly_visit_required
+        
+        return {"status": "success", "customer": customer_to_update}
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error updating customer: {str(e)}")
+
+@app.delete("/customers/{customer_id}")
+async def delete_customer(customer_id: int):
+    """Delete a customer"""
+    try:
+        customers = load_west_la_ice_customers()
+        
+        customer_to_delete = next((c for c in customers if c.id == customer_id), None)
+        if not customer_to_delete:
+            raise HTTPException(status_code=404, detail="Customer not found")
+        
+        return {"status": "success", "message": f"Customer {customer_to_delete.name} deleted"}
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error deleting customer: {str(e)}")
+
+@app.post("/generate-four-week-schedule")
+async def generate_four_week_schedule(request: RouteOptimizationRequest):
+    """Generate 4-week customer delivery schedule"""
+    try:
+        customers_to_schedule = request.customers
+        four_week_schedule = []
+        
+        customers_per_week = len(customers_to_schedule) // 4
+        if len(customers_to_schedule) % 4 != 0:
+            customers_per_week += 1
+        
+        for week in range(4):
+            start_idx = week * customers_per_week
+            end_idx = min((week + 1) * customers_per_week, len(customers_to_schedule))
+            week_customers = customers_to_schedule[start_idx:end_idx]
+            
+            if not week_customers:
+                continue
+            
+            week_routes = await route_optimizer.optimize_complete_weekly_routes(
+                customers=week_customers,
+                depot_addresses=request.depot_addresses,
+                num_vehicles=request.num_vehicles,
+                vehicle_distribution=request.vehicle_distribution
+            )
+            
+            four_week_schedule.append({
+                "week": week + 1,
+                "routes": week_routes,
+                "customer_count": len(week_customers)
+            })
+        
+        return FourWeekScheduleResponse(
+            weeks=four_week_schedule,
+            total_customers=len(customers_to_schedule),
+            customers_per_week=customers_per_week
+        )
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error generating 4-week schedule: {str(e)}")
