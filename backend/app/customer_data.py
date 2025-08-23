@@ -16,11 +16,13 @@ def load_west_la_ice_customers() -> List[Customer]:
     
     excel_customers = []
     excel_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'deinjjee.xlsx')
+    print(f"Excel file path: {excel_path}, exists: {os.path.exists(excel_path)}")
     
     if os.path.exists(excel_path):
         try:
             df = pd.read_excel(excel_path, header=None)
             print(f"Excel file loaded with {len(df)} rows")
+            print(f"Sample Excel data: {df.head(3).to_string()}")
             
             for i, row in df.iterrows():
                 try:

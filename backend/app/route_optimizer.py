@@ -384,12 +384,14 @@ class RouteOptimizer:
             if solution:
                 return self._extract_depot_routes(manager, routing, solution, customers, distance_matrix, depot_name)
             else:
+                print(f"⚠️ OR-Tools optimization failed for {depot_name}, falling back to simple routes")
                 return self._create_simple_routes(customers, num_vehicles, depot_name)
                 
         except Exception as e:
             import logging
             logger = logging.getLogger(__name__)
             logger.error(f"Error optimizing depot routes for {depot_name}: {e}")
+            print(f"⚠️ Exception in {depot_name} optimization: {e}, falling back to simple routes")
             return self._create_simple_routes(customers, num_vehicles, depot_name)
     
     def _create_simple_routes(self, customers: List[Customer], num_vehicles: int, depot_name: str) -> List[VehicleRoute]:
@@ -433,10 +435,10 @@ class RouteOptimizer:
                 vehicle_id=i,
                 depot_name=depot_name,
                 route_points=route_points,
-                total_distance_miles=0.0,
-                total_time_minutes=480.0,
+                total_distance_miles=len(route_points) * 5.0,
+                total_time_minutes=len(route_points) * 60.0,
                 truck_id=f"{depot_name[0].upper()}{i + 1}",
-                estimated_hours=8.0
+                estimated_hours=len(route_points) * 1.0
             )
             routes.append(route)
         
