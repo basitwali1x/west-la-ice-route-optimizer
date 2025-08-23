@@ -5,6 +5,68 @@ import os
 from .google_sheets_service import GoogleSheetsService
 from datetime import datetime, timedelta
 import random
+import math
+
+def calculate_haversine(lat1, lng1, lat2, lng2):
+    """Calculate the great circle distance between two points on earth (in miles)"""
+    lat1, lng1, lat2, lng2 = map(math.radians, [lat1, lng1, lat2, lng2])
+    
+    dlat = lat2 - lat1
+    dlng = lng2 - lng1
+    a = math.sin(dlat/2)**2 + math.cos(lat1) * math.cos(lat2) * math.sin(dlng/2)**2
+    c = 2 * math.asin(math.sqrt(a))
+    
+    r = 3956
+    return c * r
+
+def assign_depot_by_coordinates(lat, lng):
+    """Assign depot based on closest geographic distance"""
+    if lat is None or lng is None:
+        return 'Leesville'  # Fallback for missing coordinates
+        
+    depots = {
+        "Lufkin": (31.3382, -94.7291),      # Lufkin coordinates
+        "Leesville": (31.1435, -93.2609),   # Leesville coordinates
+        "Lake Charles": (30.2266, -93.2174) # Lake Charles coordinates
+    }
+    
+    closest_depot = None
+    min_distance = float('inf')
+    
+    for depot, (depot_lat, depot_lng) in depots.items():
+        distance = calculate_haversine(lat, lng, depot_lat, depot_lng)
+        if distance < min_distance:
+            min_distance = distance
+            closest_depot = depot
+    
+    return closest_depot
+
+TEXAS_BOUNDARY = {
+    "north": 32.5, "south": 29.0, 
+    "west": -95.5, "east": -93.5
+}
+
+def is_in_texas(lat, lng):
+    """Check if coordinates fall within Texas boundary"""
+    if lat is None or lng is None:
+        return False
+    return (TEXAS_BOUNDARY["south"] <= lat <= TEXAS_BOUNDARY["north"] and
+            TEXAS_BOUNDARY["west"] <= lng <= TEXAS_BOUNDARY["east"])
+
+def validate_texas_assignments(depot, address, lat, lng):
+    """Ensure Texas addresses don't get assigned to Leesville"""
+    address_upper = address.upper()
+    is_texas_address = (
+        "TX" in address_upper or "TEXAS" in address_upper or 
+        "BURKVILLE" in address_upper or is_in_texas(lat, lng)
+    )
+    
+    if is_texas_address and depot == "Leesville":
+        if lat is not None and lng is not None:
+            return assign_depot_by_coordinates(lat, lng)
+        else:
+            return 'Lufkin'
+    return depot
 
 def load_west_la_ice_customers() -> List[Customer]:
     """
@@ -85,19 +147,32 @@ def load_west_la_ice_customers() -> List[Customer]:
             depot = ''
             if excel_customer['depot'] in depot_mapping:
                 depot = excel_customer['depot']
+                depot = validate_texas_assignments(depot, excel_customer['address'], None, None)
             else:
-                address = excel_customer['address']
-                if ('Lufkin' in address or 'TX' in address or 'Huntington' in address or 
-                    'Zavalla' in address or 'Ratcliff' in address or 'TX 759' in address or
-                    'Hwy 69' in address or 'TX-7' in address or 'Palestine' in address or
-                    'Jacksonville' in address or 'Henderson' in address or 'Kilgore' in address or
-                    'Nacogdoches' in address or 'Longview' in address or 'Gladewater' in address or
-                    'White Oak' in address or 'Hallsville' in address or 'Tatum' in address):
-                    depot = 'Lufkin'
-                elif 'Lake Charles' in address or 'LA 706' in address:
-                    depot = 'Lake Charles'
+                address_key = excel_customer['address'].lower().replace(" ", "").replace(",", "")
+                if address_key in coordinates_map:
+                    lat = coordinates_map[address_key]['latitude']
+                    lng = coordinates_map[address_key]['longitude']
+                    depot = assign_depot_by_coordinates(lat, lng)
+                    depot = validate_texas_assignments(depot, excel_customer['address'], lat, lng)
                 else:
-                    depot = 'Leesville'
+                    address = excel_customer['address'].upper()
+                    if any(pattern in address for pattern in [
+                        'TX-', 'TX ', 'TEXAS', 'BURKVILLE', 'LUFKIN', 'HUNTINGTON', 'ZAVALLA', 'RATCLIFF', 
+                        'TX 759', 'HWY 69', 'TX-7', 'PALESTINE', 'JACKSONVILLE', 
+                        'HENDERSON', 'KILGORE', 'NACOGDOCHES', 'LONGVIEW', 
+                        'GLADEWATER', 'WHITE OAK', 'HALLSVILLE', 'TATUM', 'JASPER', 'HEMPHILL', 'NEWTON'
+                    ]):
+                        depot = 'Lufkin'
+                    elif any(pattern in address for pattern in [
+                        'LAKE CHARLES', 'LA 706', 'CALCASIEU', 'WESTLAKE', 'SULPHUR'
+                    ]):
+                        depot = 'Lake Charles'
+                    else:
+                        if 'TEXAS' in address:
+                            depot = 'Lufkin'
+                        else:
+                            depot = 'Leesville'
             
             latitude = None
             longitude = None
@@ -106,6 +181,10 @@ def load_west_la_ice_customers() -> List[Customer]:
             if address_key in coordinates_map:
                 latitude = coordinates_map[address_key]['latitude']
                 longitude = coordinates_map[address_key]['longitude']
+                
+                if excel_customer['depot'] not in depot_mapping:
+                    depot = assign_depot_by_coordinates(latitude, longitude)
+                    depot = validate_texas_assignments(depot, excel_customer['address'], latitude, longitude)
             
             last_visit = datetime.now() - timedelta(days=random.randint(0, 10))
             days_since = (datetime.now() - last_visit).days
@@ -116,7 +195,7 @@ def load_west_la_ice_customers() -> List[Customer]:
                 address=excel_customer['address'],
                 depot=depot,
                 truck=f"Truck {(i % 8) + 1}",
-                day="Monday",
+                day=None,
                 phone=excel_customer['phone'],
                 last_visit_date=last_visit,
                 visited_this_week=random.choice([True, False]),
@@ -154,18 +233,29 @@ def load_west_la_ice_customers() -> List[Customer]:
                             
                             assigned_depot = customer_data.get("depot", depot)
                             if assigned_depot == "all":
-                                address = customer_data["address"]
-                                if ('Lufkin' in address or 'TX' in address or 'Huntington' in address or 
-                                    'Zavalla' in address or 'Ratcliff' in address or 'TX 759' in address or
-                                    'Hwy 69' in address or 'TX-7' in address or 'Palestine' in address or
-                                    'Jacksonville' in address or 'Henderson' in address or 'Kilgore' in address or
-                                    'Nacogdoches' in address or 'Longview' in address or 'Gladewater' in address or
-                                    'White Oak' in address or 'Hallsville' in address or 'Tatum' in address):
-                                    assigned_depot = 'Lufkin'
-                                elif 'Lake Charles' in address or 'LA 706' in address:
-                                    assigned_depot = 'Lake Charles'
+                                lat = customer_data.get("latitude")
+                                lng = customer_data.get("longitude")
+                                if lat is not None and lng is not None:
+                                    assigned_depot = assign_depot_by_coordinates(float(lat), float(lng))
+                                    assigned_depot = validate_texas_assignments(assigned_depot, customer_data["address"], float(lat), float(lng))
                                 else:
-                                    assigned_depot = 'Leesville'
+                                    address = customer_data["address"].upper()
+                                    if any(pattern in address for pattern in [
+                                        'TX-', 'TX ', 'TEXAS', 'BURKVILLE', 'LUFKIN', 'HUNTINGTON', 'ZAVALLA', 'RATCLIFF', 
+                                        'TX 759', 'HWY 69', 'TX-7', 'PALESTINE', 'JACKSONVILLE', 
+                                        'HENDERSON', 'KILGORE', 'NACOGDOCHES', 'LONGVIEW', 
+                                        'GLADEWATER', 'WHITE OAK', 'HALLSVILLE', 'TATUM', 'JASPER', 'HEMPHILL', 'NEWTON'
+                                    ]):
+                                        assigned_depot = 'Lufkin'  # All Texas addresses go to Lufkin
+                                    elif any(pattern in address for pattern in [
+                                        'LAKE CHARLES', 'LA 706', 'CALCASIEU', 'WESTLAKE', 'SULPHUR'
+                                    ]):
+                                        assigned_depot = 'Lake Charles'
+                                    else:
+                                        if 'TEXAS' in address:
+                                            assigned_depot = 'Lufkin'
+                                        else:
+                                            assigned_depot = 'Leesville'
                             
                             customer = Customer(
                                 id=len(all_customers) + 1,
@@ -173,7 +263,7 @@ def load_west_la_ice_customers() -> List[Customer]:
                                 address=customer_data["address"],
                                 depot=assigned_depot,
                                 truck=f"Truck {(i % 8) + 1}",
-                                day="Monday",
+                                day=None,
                                 phone=customer_data.get("phone", ""),
                                 last_visit_date=last_visit,
                                 visited_this_week=random.choice([True, False]),

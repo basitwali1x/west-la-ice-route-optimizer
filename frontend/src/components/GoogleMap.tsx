@@ -22,6 +22,7 @@ const GoogleMap: React.FC<GoogleMapProps> = ({ routes, depotLocations, className
   const [isLoaded, setIsLoaded] = useState(false);
   const [mapError, setMapError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [isInitializing, setIsInitializing] = useState(false);
 
   const GOOGLE_MAPS_API_KEY = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
 
@@ -50,37 +51,90 @@ const GoogleMap: React.FC<GoogleMapProps> = ({ routes, depotLocations, className
         setIsLoaded(true);
         setMapError(null);
 
-        if (mapRef.current) {
-          try {
-            const mapInstance = new google.maps.Map(mapRef.current, {
-              center: depotLocations && depotLocations.length > 0 ? 
-                { lat: depotLocations[0].latitude, lng: depotLocations[0].longitude } : 
-                { lat: 31.1435, lng: -93.2607 },
-              zoom: 8,
-              mapTypeId: google.maps.MapTypeId.ROADMAP,
-            });
+        let retryCount = 0;
+        const maxRetries = 5;
+        const retryDelay = 200;
 
-            if (!mapInstance) {
-              throw new Error('Failed to create Google Maps instance - map is null');
+        const initializeMap = () => {
+          console.log('Attempting to initialize map, retry:', retryCount);
+          setIsInitializing(true);
+          
+          const container = mapRef.current || document.getElementById('google-map-container');
+          
+          if (container) {
+            try {
+              const width = container.offsetWidth;
+              const height = container.offsetHeight;
+              
+              console.log('Map container dimensions:', { width, height });
+              
+              if (width === 0 || height === 0) {
+                console.warn('Map container has zero dimensions, retrying...');
+                if (retryCount < maxRetries) {
+                  retryCount++;
+                  setTimeout(initializeMap, retryDelay);
+                  return;
+                } else {
+                  throw new Error('Map container has zero dimensions after multiple retries');
+                }
+              }
+
+              const mapInstance = new google.maps.Map(container, {
+                center: depotLocations && depotLocations.length > 0 ? 
+                  { lat: depotLocations[0].latitude, lng: depotLocations[0].longitude } : 
+                  { lat: 31.1435, lng: -93.2607 },
+                zoom: 8,
+                mapTypeId: google.maps.MapTypeId.ROADMAP,
+              });
+
+              if (!mapInstance) {
+                throw new Error('Failed to create Google Maps instance - map is null');
+              }
+
+              window.setTimeout(() => {
+                google.maps.event.trigger(mapInstance, 'resize');
+                console.log('Map resize event triggered');
+              }, 100);
+
+              setMap(mapInstance);
+              setIsLoading(false);
+              setIsInitializing(false);
+              console.log('Map initialized successfully');
+            } catch (mapError) {
+              console.error('Error creating Google Maps instance:', mapError);
+              const errorMessage = mapError instanceof Error ? mapError.message : 'Failed to create map instance';
+              
+              if (retryCount < maxRetries) {
+                console.log(`Retrying map initialization (${retryCount + 1}/${maxRetries})...`);
+                retryCount++;
+                setTimeout(initializeMap, retryDelay);
+                return;
+              }
+              
+              if (errorMessage.includes('ExpiredKeyMapError') || errorMessage.includes('InvalidKeyMapError') || errorMessage.includes('ApiNotActivatedMapError')) {
+                setMapError('Google Maps API key is invalid or expired. Please update the API key in environment variables.');
+              } else {
+                setMapError(`Failed to create Google Maps instance: ${errorMessage}`);
+              }
+              setIsLoading(false);
+              setIsInitializing(false);
+              return;
             }
-
-            setMap(mapInstance);
-            setIsLoading(false);
-          } catch (mapError) {
-            console.error('Error creating Google Maps instance:', mapError);
-            const errorMessage = mapError instanceof Error ? mapError.message : 'Failed to create map instance';
-            if (errorMessage.includes('ExpiredKeyMapError') || errorMessage.includes('InvalidKeyMapError') || errorMessage.includes('ApiNotActivatedMapError')) {
-              setMapError('Google Maps API key is invalid or expired. Please update the API key in environment variables.');
+          } else {
+            if (retryCount < maxRetries) {
+              console.log(`Map container not found, retrying (${retryCount + 1}/${maxRetries})...`);
+              retryCount++;
+              setTimeout(initializeMap, retryDelay);
             } else {
-              setMapError(`Failed to create Google Maps instance: ${errorMessage}`);
+              console.error('Map container element not found after maximum retries');
+              setMapError('Map container element not found after maximum retries');
+              setIsLoading(false);
+              setIsInitializing(false);
             }
-            setIsLoading(false);
-            return;
           }
-        } else {
-          setMapError('Map container element not found');
-          setIsLoading(false);
-        }
+        };
+
+        setTimeout(initializeMap, 100);
       } catch (error) {
         console.error('Error loading Google Maps:', error);
         const errorMessage = error instanceof Error ? error.message : 'Failed to load Google Maps';
@@ -93,7 +147,29 @@ const GoogleMap: React.FC<GoogleMapProps> = ({ routes, depotLocations, className
       }
     };
 
-    initMap();
+    const checkDOMAndInitMap = () => {
+      if (document.readyState === 'complete') {
+        console.log('DOM is ready (complete), initializing map');
+        initMap();
+      } else {
+        console.log('DOM not ready yet, waiting...');
+        window.addEventListener('load', () => {
+          console.log('Window load event fired, initializing map');
+          initMap();
+        }, { once: true });
+        
+        setTimeout(() => {
+          console.log('Fallback timeout reached, initializing map');
+          initMap();
+        }, 1000);
+      }
+    };
+    
+    checkDOMAndInitMap();
+    
+    return () => {
+      window.removeEventListener('load', initMap);
+    };
   }, [GOOGLE_MAPS_API_KEY, depotLocations]);
 
   useEffect(() => {
@@ -250,43 +326,58 @@ const GoogleMap: React.FC<GoogleMapProps> = ({ routes, depotLocations, className
     </div>
   );
 
-  if (isLoading) {
-    return (
-      <div className={`w-full h-full min-h-[400px] ${className || ''} flex items-center justify-center`}>
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-2"></div>
-          <p className="text-gray-600">Loading map...</p>
-        </div>
-      </div>
-    );
-  }
-
-  if (mapError) {
-    return (
-      <div className={`w-full min-h-[400px] ${className || ''}`}>
-        <Alert className="mb-4 border-orange-200 bg-orange-50">
-          <AlertTriangle className="h-4 w-4 text-orange-600" />
-          <AlertDescription className="text-orange-800">
-            {mapError}
-          </AlertDescription>
-        </Alert>
-        <div className="bg-gray-50 rounded-lg p-4">
-          <h3 className="text-lg font-semibold mb-4 flex items-center">
-            <MapPin className="h-5 w-5 mr-2" />
-            Route Information (List View)
-          </h3>
-          <RouteListFallback />
-        </div>
-      </div>
-    );
-  }
+  const showLoadingOverlay = isLoading && !isInitializing;
+  const showInitializingOverlay = isInitializing;
 
   return (
-    <div 
-      ref={mapRef} 
-      className={`w-full h-full min-h-[400px] ${className || ''}`}
-      style={{ minHeight: '400px' }}
-    />
+    <div className={`relative w-full min-h-[400px] ${className || ''}`}>
+      {/* Always render the map container */}
+      <div 
+        ref={mapRef} 
+        className="w-full h-full min-h-[400px]"
+        style={{ minHeight: '400px', height: '500px', width: '100%', display: 'block' }}
+        id="google-map-container"
+      />
+      
+      {/* Loading overlay */}
+      {showLoadingOverlay && (
+        <div className="absolute inset-0 flex items-center justify-center bg-white bg-opacity-90 z-10">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-2"></div>
+            <p className="text-gray-600">Loading map...</p>
+          </div>
+        </div>
+      )}
+      
+      {/* Initializing overlay */}
+      {showInitializingOverlay && (
+        <div className="absolute inset-0 flex items-center justify-center bg-white bg-opacity-75 z-10">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-green-600 mx-auto mb-2"></div>
+            <p className="text-gray-600 text-sm">Initializing map...</p>
+          </div>
+        </div>
+      )}
+      
+      {/* Error overlay */}
+      {mapError && (
+        <div className="absolute inset-0 bg-white z-20 p-4">
+          <Alert className="mb-4 border-orange-200 bg-orange-50">
+            <AlertTriangle className="h-4 w-4 text-orange-600" />
+            <AlertDescription className="text-orange-800">
+              {mapError}
+            </AlertDescription>
+          </Alert>
+          <div className="bg-gray-50 rounded-lg p-4">
+            <h3 className="text-lg font-semibold mb-4 flex items-center">
+              <MapPin className="h-5 w-5 mr-2" />
+              Route Information (List View)
+            </h3>
+            <RouteListFallback />
+          </div>
+        </div>
+      )}
+    </div>
   );
 };
 
