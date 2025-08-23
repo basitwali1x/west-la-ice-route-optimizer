@@ -97,7 +97,10 @@ def load_west_la_ice_customers() -> List[Customer]:
                 elif 'Lake Charles' in address or 'LA 706' in address:
                     depot = 'Lake Charles'
                 else:
-                    depot = 'Leesville'
+                    if 'LA' in address or 'Louisiana' in address:
+                        depot = 'Leesville'
+                    else:
+                        depot = 'Lufkin'
             
             latitude = None
             longitude = None

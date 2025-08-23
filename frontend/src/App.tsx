@@ -442,6 +442,35 @@ function App() {
                 </div>
               </div>
 
+              <div style={{
+                background: '#f8f9fa',
+                borderRadius: '8px',
+                padding: '16px',
+                marginBottom: '24px',
+                borderLeft: '4px solid #007bff'
+              }}>
+                <h3 style={{
+                  margin: '0 0 12px 0',
+                  color: '#333',
+                  fontSize: '16px'
+                }}>Daily Distribution Summary</h3>
+                <div>
+                  <p style={{
+                    margin: '4px 0',
+                    color: '#666',
+                    fontSize: '14px'
+                  }}>Expected customers per truck per day: <strong style={{
+                    color: '#007bff',
+                    fontWeight: '600'
+                  }}>{Math.round(customerCount / numVehicles / 5)}</strong></p>
+                  <p style={{
+                    margin: '4px 0',
+                    color: '#666',
+                    fontSize: '14px'
+                  }}>Total customers: {customerCount} ÷ {numVehicles} trucks ÷ 5 days = ~{(customerCount / numVehicles / 5).toFixed(1)} per truck per day</p>
+                </div>
+              </div>
+
               <div>
                 <label className="text-sm font-medium mb-3 block">
                   Depot Constraints & Isolation
