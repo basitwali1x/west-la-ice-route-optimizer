@@ -22,6 +22,7 @@ const GoogleMap: React.FC<GoogleMapProps> = ({ routes, depotLocations, className
   const [isLoaded, setIsLoaded] = useState(false);
   const [mapError, setMapError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [isInitializing, setIsInitializing] = useState(false);
 
   const GOOGLE_MAPS_API_KEY = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
 
@@ -56,10 +57,12 @@ const GoogleMap: React.FC<GoogleMapProps> = ({ routes, depotLocations, className
 
         const initializeMap = () => {
           console.log('Attempting to initialize map, retry:', retryCount);
+          setIsInitializing(true);
           
-          if (mapRef.current) {
+          const container = mapRef.current || document.getElementById('google-map-container');
+          
+          if (container) {
             try {
-              const container = mapRef.current;
               const width = container.offsetWidth;
               const height = container.offsetHeight;
               
@@ -95,6 +98,7 @@ const GoogleMap: React.FC<GoogleMapProps> = ({ routes, depotLocations, className
 
               setMap(mapInstance);
               setIsLoading(false);
+              setIsInitializing(false);
               console.log('Map initialized successfully');
             } catch (mapError) {
               console.error('Error creating Google Maps instance:', mapError);
@@ -113,6 +117,7 @@ const GoogleMap: React.FC<GoogleMapProps> = ({ routes, depotLocations, className
                 setMapError(`Failed to create Google Maps instance: ${errorMessage}`);
               }
               setIsLoading(false);
+              setIsInitializing(false);
               return;
             }
           } else {
@@ -124,6 +129,7 @@ const GoogleMap: React.FC<GoogleMapProps> = ({ routes, depotLocations, className
               console.error('Map container element not found after maximum retries');
               setMapError('Map container element not found after maximum retries');
               setIsLoading(false);
+              setIsInitializing(false);
             }
           }
         };
@@ -320,44 +326,58 @@ const GoogleMap: React.FC<GoogleMapProps> = ({ routes, depotLocations, className
     </div>
   );
 
-  if (isLoading) {
-    return (
-      <div className={`w-full h-full min-h-[400px] ${className || ''} flex items-center justify-center`}>
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-2"></div>
-          <p className="text-gray-600">Loading map...</p>
-        </div>
-      </div>
-    );
-  }
-
-  if (mapError) {
-    return (
-      <div className={`w-full min-h-[400px] ${className || ''}`}>
-        <Alert className="mb-4 border-orange-200 bg-orange-50">
-          <AlertTriangle className="h-4 w-4 text-orange-600" />
-          <AlertDescription className="text-orange-800">
-            {mapError}
-          </AlertDescription>
-        </Alert>
-        <div className="bg-gray-50 rounded-lg p-4">
-          <h3 className="text-lg font-semibold mb-4 flex items-center">
-            <MapPin className="h-5 w-5 mr-2" />
-            Route Information (List View)
-          </h3>
-          <RouteListFallback />
-        </div>
-      </div>
-    );
-  }
+  const showLoadingOverlay = isLoading && !isInitializing;
+  const showInitializingOverlay = isInitializing;
 
   return (
-    <div 
-      ref={mapRef} 
-      className={`w-full h-full min-h-[400px] ${className || ''}`}
-      style={{ minHeight: '400px', height: '500px', width: '100%', display: 'block' }}
-      id="google-map-container"
-    />
+    <div className={`relative w-full min-h-[400px] ${className || ''}`}>
+      {/* Always render the map container */}
+      <div 
+        ref={mapRef} 
+        className="w-full h-full min-h-[400px]"
+        style={{ minHeight: '400px', height: '500px', width: '100%', display: 'block' }}
+        id="google-map-container"
+      />
+      
+      {/* Loading overlay */}
+      {showLoadingOverlay && (
+        <div className="absolute inset-0 flex items-center justify-center bg-white bg-opacity-90 z-10">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-2"></div>
+            <p className="text-gray-600">Loading map...</p>
+          </div>
+        </div>
+      )}
+      
+      {/* Initializing overlay */}
+      {showInitializingOverlay && (
+        <div className="absolute inset-0 flex items-center justify-center bg-white bg-opacity-75 z-10">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-green-600 mx-auto mb-2"></div>
+            <p className="text-gray-600 text-sm">Initializing map...</p>
+          </div>
+        </div>
+      )}
+      
+      {/* Error overlay */}
+      {mapError && (
+        <div className="absolute inset-0 bg-white z-20 p-4">
+          <Alert className="mb-4 border-orange-200 bg-orange-50">
+            <AlertTriangle className="h-4 w-4 text-orange-600" />
+            <AlertDescription className="text-orange-800">
+              {mapError}
+            </AlertDescription>
+          </Alert>
+          <div className="bg-gray-50 rounded-lg p-4">
+            <h3 className="text-lg font-semibold mb-4 flex items-center">
+              <MapPin className="h-5 w-5 mr-2" />
+              Route Information (List View)
+            </h3>
+            <RouteListFallback />
+          </div>
+        </div>
+      )}
+    </div>
   );
 };
 

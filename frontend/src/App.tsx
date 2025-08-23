@@ -657,25 +657,26 @@ function App() {
             <WeeklyVisitDashboard />
           </TabsContent>
 
+          <TabsContent value="map">
+            <Card>
+              <CardHeader>
+                <CardTitle>Route Visualization</CardTitle>
+                <CardDescription>
+                  Interactive map showing optimized delivery routes
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <GoogleMap 
+                  routes={optimizationResult?.routes || []}
+                  depotLocations={optimizationResult?.depot_locations || []}
+                  className="rounded-lg border"
+                />
+              </CardContent>
+            </Card>
+          </TabsContent>
+
           {optimizationResult && (
             <>
-            <TabsContent value="map">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Route Visualization</CardTitle>
-                  <CardDescription>
-                    Interactive map showing optimized delivery routes
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <GoogleMap 
-                    routes={optimizationResult.routes}
-                    depotLocations={optimizationResult.depot_locations}
-                    className="rounded-lg border"
-                  />
-                </CardContent>
-              </Card>
-            </TabsContent>
 
             <TabsContent value="routes">
               <div className="grid gap-6">
