@@ -50,37 +50,47 @@ const GoogleMap: React.FC<GoogleMapProps> = ({ routes, depotLocations, className
         setIsLoaded(true);
         setMapError(null);
 
-        if (mapRef.current) {
-          try {
-            const mapInstance = new google.maps.Map(mapRef.current, {
-              center: depotLocations && depotLocations.length > 0 ? 
-                { lat: depotLocations[0].latitude, lng: depotLocations[0].longitude } : 
-                { lat: 31.1435, lng: -93.2607 },
-              zoom: 8,
-              mapTypeId: google.maps.MapTypeId.ROADMAP,
-            });
+        const initializeMap = () => {
+          if (mapRef.current) {
+            try {
+              const mapInstance = new google.maps.Map(mapRef.current, {
+                center: depotLocations && depotLocations.length > 0 ? 
+                  { lat: depotLocations[0].latitude, lng: depotLocations[0].longitude } : 
+                  { lat: 31.1435, lng: -93.2607 },
+                zoom: 8,
+                mapTypeId: google.maps.MapTypeId.ROADMAP,
+              });
 
-            if (!mapInstance) {
-              throw new Error('Failed to create Google Maps instance - map is null');
-            }
+              if (!mapInstance) {
+                throw new Error('Failed to create Google Maps instance - map is null');
+              }
 
-            setMap(mapInstance);
-            setIsLoading(false);
-          } catch (mapError) {
-            console.error('Error creating Google Maps instance:', mapError);
-            const errorMessage = mapError instanceof Error ? mapError.message : 'Failed to create map instance';
-            if (errorMessage.includes('ExpiredKeyMapError') || errorMessage.includes('InvalidKeyMapError') || errorMessage.includes('ApiNotActivatedMapError')) {
-              setMapError('Google Maps API key is invalid or expired. Please update the API key in environment variables.');
-            } else {
-              setMapError(`Failed to create Google Maps instance: ${errorMessage}`);
+              setMap(mapInstance);
+              setIsLoading(false);
+            } catch (mapError) {
+              console.error('Error creating Google Maps instance:', mapError);
+              const errorMessage = mapError instanceof Error ? mapError.message : 'Failed to create map instance';
+              if (errorMessage.includes('ExpiredKeyMapError') || errorMessage.includes('InvalidKeyMapError') || errorMessage.includes('ApiNotActivatedMapError')) {
+                setMapError('Google Maps API key is invalid or expired. Please update the API key in environment variables.');
+              } else {
+                setMapError(`Failed to create Google Maps instance: ${errorMessage}`);
+              }
+              setIsLoading(false);
+              return;
             }
-            setIsLoading(false);
-            return;
+          } else {
+            setTimeout(() => {
+              if (mapRef.current) {
+                initializeMap();
+              } else {
+                setMapError('Map container element not found after retry');
+                setIsLoading(false);
+              }
+            }, 100);
           }
-        } else {
-          setMapError('Map container element not found');
-          setIsLoading(false);
-        }
+        };
+
+        setTimeout(initializeMap, 50);
       } catch (error) {
         console.error('Error loading Google Maps:', error);
         const errorMessage = error instanceof Error ? error.message : 'Failed to load Google Maps';
@@ -93,7 +103,20 @@ const GoogleMap: React.FC<GoogleMapProps> = ({ routes, depotLocations, className
       }
     };
 
-    initMap();
+    if (mapRef.current || document.readyState === 'complete') {
+      initMap();
+    } else {
+      const handleDOMReady = () => {
+        initMap();
+      };
+      
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', handleDOMReady);
+        return () => document.removeEventListener('DOMContentLoaded', handleDOMReady);
+      } else {
+        setTimeout(initMap, 100);
+      }
+    }
   }, [GOOGLE_MAPS_API_KEY, depotLocations]);
 
   useEffect(() => {
