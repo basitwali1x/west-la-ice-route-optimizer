@@ -10,6 +10,8 @@ import GoogleMap from './components/GoogleMap.tsx';
 import { GoogleSheetsSync } from './components/GoogleSheetsSync';
 import { DriverDashboard } from './components/DriverDashboard';
 import { WeeklyVisitDashboard } from './components/WeeklyVisitDashboard';
+import { CustomerManagement } from './components/CustomerManagement';
+import { FourWeekSchedule } from './components/FourWeekSchedule';
 import { api } from './services/api';
 import { Customer, RouteOptimizationResponse } from './types';
 
@@ -32,6 +34,7 @@ function App() {
   const [startTime, setStartTime] = useState<Date | null>(null);
   const [sheetsData, setSheetsData] = useState<any>(null);
   const [selectedTruck] = useState('L1');
+  const [selectedCustomers, setSelectedCustomers] = useState<Set<number>>(new Set());
 
   useEffect(() => {
     loadInitialData();
@@ -602,9 +605,11 @@ function App() {
         </Card>
 
         <Tabs defaultValue="overview" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-6">
+          <TabsList className="grid w-full grid-cols-8">
             <TabsTrigger value="overview">Overview</TabsTrigger>
             <TabsTrigger value="sheets">Google Sheets</TabsTrigger>
+            <TabsTrigger value="customers">Customers</TabsTrigger>
+            <TabsTrigger value="schedule">4-Week Schedule</TabsTrigger>
             <TabsTrigger value="driver">Driver Dashboard</TabsTrigger>
             <TabsTrigger value="weekly">Weekly Visits</TabsTrigger>
             <TabsTrigger value="map">Route Map</TabsTrigger>
@@ -680,6 +685,23 @@ function App() {
 
           <TabsContent value="driver" className="space-y-6">
             <DriverDashboard truckId={selectedTruck} day="Monday" />
+          </TabsContent>
+
+          <TabsContent value="customers" className="space-y-6">
+            <CustomerManagement 
+              customers={customers}
+              onCustomersChange={setCustomers}
+              selectedCustomers={selectedCustomers}
+              onSelectedCustomersChange={setSelectedCustomers}
+            />
+          </TabsContent>
+
+          <TabsContent value="schedule" className="space-y-6">
+            <FourWeekSchedule 
+              customers={customers}
+              selectedCustomers={selectedCustomers}
+              vehicleDistribution={vehicleDistribution}
+            />
           </TabsContent>
 
           <TabsContent value="weekly" className="space-y-6">

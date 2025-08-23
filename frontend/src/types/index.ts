@@ -78,3 +78,24 @@ export interface VisitTrackingUpdate {
   depot: string;
   truck_id?: string;
 }
+
+export interface CustomerCreateRequest {
+  name: string;
+  address: string;
+  depot: string;
+  phone?: string;
+  priority_level?: string;
+  weekly_visit_required?: boolean;
+}
+
+export interface FourWeekSchedule {
+  weeks: WeekSchedule[];
+  total_customers: number;
+  customers_per_week: number;
+}
+
+export interface WeekSchedule {
+  week: number;
+  routes: VehicleRoute[];
+  customer_count: number;
+}

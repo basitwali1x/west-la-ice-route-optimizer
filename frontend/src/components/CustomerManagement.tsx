@@ -33,7 +33,6 @@ export function CustomerManagement({
   const [selectedDepot, setSelectedDepot] = useState<string>('all');
   const [isEditing, setIsEditing] = useState(false);
   const [editingCustomer, setEditingCustomer] = useState<Customer | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const depots = ['Leesville', 'Lake Charles', 'Lufkin'];
@@ -72,7 +71,6 @@ export function CustomerManagement({
     if (!confirm('Are you sure you want to delete this customer?')) return;
     
     try {
-      setIsLoading(true);
       await api.deleteCustomer(customerId);
       const updatedCustomers = customers.filter(c => c.id !== customerId);
       onCustomersChange(updatedCustomers);
@@ -82,14 +80,11 @@ export function CustomerManagement({
       onSelectedCustomersChange(newSelected);
     } catch (err) {
       setError('Failed to delete customer');
-    } finally {
-      setIsLoading(false);
     }
   };
 
   const handleSaveCustomer = async (customer: Customer) => {
     try {
-      setIsLoading(true);
       if (editingCustomer && editingCustomer.id) {
         await api.updateCustomer(customer.id, customer);
         const updatedCustomers = customers.map(c => 
@@ -105,8 +100,6 @@ export function CustomerManagement({
       setEditingCustomer(null);
     } catch (err) {
       setError('Failed to save customer');
-    } finally {
-      setIsLoading(false);
     }
   };
 

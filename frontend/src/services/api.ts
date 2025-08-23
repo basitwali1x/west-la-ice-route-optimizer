@@ -201,44 +201,6 @@ export const api = {
     if (!response.ok) throw new Error('Failed to generate 4-week schedule');
     return response.json();
   },
-
-  async createCustomer(customer: any): Promise<any> {
-    const response = await fetch(`${API_URL}/customers`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(customer),
-    });
-    if (!response.ok) throw new Error('Failed to create customer');
-    return response.json();
-  },
-
-  async updateCustomer(customerId: number, customer: any): Promise<any> {
-    const response = await fetch(`${API_URL}/customers/${customerId}`, {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(customer),
-    });
-    if (!response.ok) throw new Error('Failed to update customer');
-    return response.json();
-  },
-
-  async deleteCustomer(customerId: number): Promise<any> {
-    const response = await fetch(`${API_URL}/customers/${customerId}`, {
-      method: 'DELETE',
-    });
-    if (!response.ok) throw new Error('Failed to delete customer');
-    return response.json();
-  },
-
-  async generateFourWeekSchedule(request: any): Promise<any> {
-    const response = await fetch(`${API_URL}/generate-four-week-schedule`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(request),
-    });
-    if (!response.ok) throw new Error('Failed to generate 4-week schedule');
-    return response.json();
-  },
 };
 
 export const resetWeeklyVisits = async (request: WeeklyResetRequest = {}) => {
