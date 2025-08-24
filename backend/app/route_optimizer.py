@@ -143,35 +143,58 @@ class RouteOptimizer:
         return await self.optimize_routes(unvisited_customers, depot_addresses, num_vehicles, vehicle_distribution)
     
     async def optimize_complete_weekly_routes(self, customers: List[Customer], depot_addresses: List[str], num_vehicles: int = 8, vehicle_distribution: Optional[Dict[str, int]] = None) -> List[VehicleRoute]:
-        """Optimize routes grouped by days (Monday-Friday) with ~116 customers per day"""
+        """Optimize routes grouped by days (Monday-Friday) with depot-specific customer distribution"""
         days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"]
-        customers_per_day = len(customers) // len(days)
+        
+        customers_by_depot = {}
+        for customer in customers:
+            depot_name = customer.depot
+            if depot_name not in customers_by_depot:
+                customers_by_depot[depot_name] = []
+            customers_by_depot[depot_name].append(customer)
+        
+        depot_daily_distribution = {}
+        for depot_name, depot_customers in customers_by_depot.items():
+            depot_trucks = self._calculate_vehicles_per_depot(depot_name, num_vehicles, vehicle_distribution)
+            customers_per_truck_per_day = len(depot_customers) / (depot_trucks * len(days))
+            depot_daily_distribution[depot_name] = {
+                'customers': depot_customers,
+                'trucks': depot_trucks,
+                'customers_per_truck_per_day': customers_per_truck_per_day,
+                'customers_per_day': len(depot_customers) // len(days)
+            }
+            print(f"Depot {depot_name}: {len(depot_customers)} customers, {depot_trucks} trucks, {customers_per_truck_per_day:.1f} customers per truck per day")
         
         all_routes = []
         
         for day_index, day in enumerate(days):
-            start_index = day_index * customers_per_day
-            if day_index == len(days) - 1:
-                day_customers = customers[start_index:]
-            else:
-                end_index = start_index + customers_per_day
-                day_customers = customers[start_index:end_index]
+            day_customers = []
             
-            for customer in day_customers:
-                customer.day = day
+            for depot_name, depot_info in depot_daily_distribution.items():
+                depot_customers = depot_info['customers']
+                customers_per_day = depot_info['customers_per_day']
+                
+                start_index = day_index * customers_per_day
+                if day_index == len(days) - 1:
+                    # Last day gets remaining customers
+                    depot_day_customers = depot_customers[start_index:]
+                else:
+                    end_index = start_index + customers_per_day
+                    depot_day_customers = depot_customers[start_index:end_index]
+                
+                for customer in depot_day_customers:
+                    customer.day = day
+                    customer.depot = depot_name  # Ensure depot assignment is preserved
+                
+                day_customers.extend(depot_day_customers)
             
-            current_assignments = {"Lufkin": 0, "Leesville": 0, "Lake Charles": 0}
-            for customer in day_customers:
-                assigned_depot = self.assign_depot_with_capacity(customer, current_assignments)
-                customer.depot = assigned_depot
-                current_assignments[assigned_depot] += 1
-            
-            day_routes = await self.optimize_routes(day_customers, depot_addresses, num_vehicles, vehicle_distribution)
-            
-            for route in day_routes:
-                route.day = day
-            
-            all_routes.extend(day_routes)
+            if day_customers:
+                day_routes = await self.optimize_routes(day_customers, depot_addresses, num_vehicles, vehicle_distribution)
+                
+                for route in day_routes:
+                    route.day = day
+                
+                all_routes.extend(day_routes)
         
         return all_routes
     
@@ -510,11 +533,11 @@ class RouteOptimizer:
             return vehicle_distribution[depot_name]
         
         if depot_name == "Leesville":
-            return 5
+            return 3
         elif depot_name == "Lake Charles":
             return 2
         elif depot_name == "Lufkin":
-            return 1
+            return 3
         else:
             return 1
     
