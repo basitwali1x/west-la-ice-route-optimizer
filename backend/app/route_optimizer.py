@@ -7,6 +7,8 @@ from datetime import datetime, timedelta
 from .models import Customer, VehicleRoute, RoutePoint, RouteOptimizationRequest, RouteOptimizationResponse
 from .google_maps_service import GoogleMapsService
 
+MAX_STOPS_PER_VEHICLE = 15
+
 LUFKIN_MONDAY_STOPS = [
     "Big's 3822,3644 Hwy 69N",
     "Big's 3825,3889 N Hwy 69", 
@@ -405,18 +407,20 @@ class RouteOptimizer:
             if solution:
                 return self._extract_depot_routes(manager, routing, solution, customers, distance_matrix, depot_name)
             else:
+                print(f"⚠️ OR-Tools optimization failed for {depot_name}, falling back to simple routes")
                 return self._create_simple_routes(customers, num_vehicles, depot_name)
                 
         except Exception as e:
             import logging
             logger = logging.getLogger(__name__)
             logger.error(f"Error optimizing depot routes for {depot_name}: {e}")
+            print(f"⚠️ Exception in {depot_name} optimization: {e}, falling back to simple routes")
             return self._create_simple_routes(customers, num_vehicles, depot_name)
     
     def _create_simple_routes(self, customers: List[Customer], num_vehicles: int, depot_name: str) -> List[VehicleRoute]:
         """Create simple routes when optimization fails with stop limit enforcement"""
         routes = []
-        MAX_STOPS_PER_VEHICLE = 25
+        max_stops = MAX_STOPS_PER_VEHICLE
         
         vehicle_routes = [[] for _ in range(num_vehicles)]
         
@@ -425,14 +429,14 @@ class RouteOptimizer:
             min_customers = float('inf')
             
             for i, route in enumerate(vehicle_routes):
-                if len(route) < MAX_STOPS_PER_VEHICLE and len(route) < min_customers:
+                if len(route) < max_stops and len(route) < min_customers:
                     best_vehicle = i
                     min_customers = len(route)
             
             if best_vehicle is not None:
                 vehicle_routes[best_vehicle].append(customer)
             else:
-                print(f"⚠️ WARNING: Customer {customer.name} skipped - all vehicles at {MAX_STOPS_PER_VEHICLE} stop limit")
+                print(f"⚠️ WARNING: Customer {customer.name} skipped - all vehicles at {max_stops} stop limit")
         
         for i, vehicle_customers in enumerate(vehicle_routes):
             if not vehicle_customers:
@@ -454,10 +458,10 @@ class RouteOptimizer:
                 vehicle_id=i,
                 depot_name=depot_name,
                 route_points=route_points,
-                total_distance_miles=0.0,
-                total_time_minutes=480.0,
+                total_distance_miles=len(route_points) * 5.0,
+                total_time_minutes=len(route_points) * 60.0,
                 truck_id=f"{depot_name[0].upper()}{i + 1}",
-                estimated_hours=8.0
+                estimated_hours=len(route_points) * 1.0
             )
             routes.append(route)
         
@@ -705,7 +709,7 @@ class RouteOptimizer:
     def _create_fallback_routes(self, customers, geocoded_locations, num_vehicles, depot_name):
         """Create fallback routes using simple round-robin assignment with stop limits"""
         routes = []
-        MAX_STOPS_PER_VEHICLE = 25
+        max_stops = MAX_STOPS_PER_VEHICLE
         
         vehicle_routes = [[] for _ in range(num_vehicles)]
         
@@ -714,14 +718,14 @@ class RouteOptimizer:
             min_customers = float('inf')
             
             for i, route in enumerate(vehicle_routes):
-                if len(route) < MAX_STOPS_PER_VEHICLE and len(route) < min_customers:
+                if len(route) < max_stops and len(route) < min_customers:
                     best_vehicle = i
                     min_customers = len(route)
             
             if best_vehicle is not None:
                 vehicle_routes[best_vehicle].append(customer)
             else:
-                print(f"⚠️ WARNING: Customer {customer.name} skipped - all vehicles at {MAX_STOPS_PER_VEHICLE} stop limit")
+                print(f"⚠️ WARNING: Customer {customer.name} skipped - all vehicles at {max_stops} stop limit")
         
         for vehicle_id, vehicle_customer_list in enumerate(vehicle_routes):
             if not vehicle_customer_list:

@@ -10,6 +10,8 @@ import GoogleMap from './components/GoogleMap.tsx';
 import { GoogleSheetsSync } from './components/GoogleSheetsSync';
 import { DriverDashboard } from './components/DriverDashboard';
 import { WeeklyVisitDashboard } from './components/WeeklyVisitDashboard';
+import { CustomerManagement } from './components/CustomerManagement';
+import { FourWeekSchedule } from './components/FourWeekSchedule';
 import { api } from './services/api';
 import { Customer, RouteOptimizationResponse } from './types';
 
@@ -32,6 +34,7 @@ function App() {
   const [startTime, setStartTime] = useState<Date | null>(null);
   const [sheetsData, setSheetsData] = useState<any>(null);
   const [selectedTruck] = useState('L1');
+  const [selectedCustomers, setSelectedCustomers] = useState<Set<number>>(new Set());
 
   useEffect(() => {
     loadInitialData();
@@ -442,6 +445,35 @@ function App() {
                 </div>
               </div>
 
+              <div style={{
+                background: '#f8f9fa',
+                borderRadius: '8px',
+                padding: '16px',
+                marginBottom: '24px',
+                borderLeft: '4px solid #007bff'
+              }}>
+                <h3 style={{
+                  margin: '0 0 12px 0',
+                  color: '#333',
+                  fontSize: '16px'
+                }}>Daily Distribution Summary</h3>
+                <div>
+                  <p style={{
+                    margin: '4px 0',
+                    color: '#666',
+                    fontSize: '14px'
+                  }}>Expected customers per truck per day: <strong style={{
+                    color: '#007bff',
+                    fontWeight: '600'
+                  }}>{Math.round(customerCount / numVehicles / 5)}</strong></p>
+                  <p style={{
+                    margin: '4px 0',
+                    color: '#666',
+                    fontSize: '14px'
+                  }}>Total customers: {customerCount} ÷ {numVehicles} trucks ÷ 5 days = ~{(customerCount / numVehicles / 5).toFixed(1)} per truck per day</p>
+                </div>
+              </div>
+
               <div>
                 <label className="text-sm font-medium mb-3 block">
                   Depot Constraints & Isolation
@@ -573,9 +605,11 @@ function App() {
         </Card>
 
         <Tabs defaultValue="overview" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-6">
+          <TabsList className="grid w-full grid-cols-8">
             <TabsTrigger value="overview">Overview</TabsTrigger>
             <TabsTrigger value="sheets">Google Sheets</TabsTrigger>
+            <TabsTrigger value="customers">Customers</TabsTrigger>
+            <TabsTrigger value="schedule">4-Week Schedule</TabsTrigger>
             <TabsTrigger value="driver">Driver Dashboard</TabsTrigger>
             <TabsTrigger value="weekly">Weekly Visits</TabsTrigger>
             <TabsTrigger value="map">Route Map</TabsTrigger>
@@ -651,6 +685,23 @@ function App() {
 
           <TabsContent value="driver" className="space-y-6">
             <DriverDashboard truckId={selectedTruck} day="Monday" />
+          </TabsContent>
+
+          <TabsContent value="customers" className="space-y-6">
+            <CustomerManagement 
+              customers={customers}
+              onCustomersChange={setCustomers}
+              selectedCustomers={selectedCustomers}
+              onSelectedCustomersChange={setSelectedCustomers}
+            />
+          </TabsContent>
+
+          <TabsContent value="schedule" className="space-y-6">
+            <FourWeekSchedule 
+              customers={customers}
+              selectedCustomers={selectedCustomers}
+              vehicleDistribution={vehicleDistribution}
+            />
           </TabsContent>
 
           <TabsContent value="weekly" className="space-y-6">

@@ -16,11 +16,13 @@ def load_west_la_ice_customers() -> List[Customer]:
     
     excel_customers = []
     excel_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'deinjjee.xlsx')
+    print(f"Excel file path: {excel_path}, exists: {os.path.exists(excel_path)}")
     
     if os.path.exists(excel_path):
         try:
             df = pd.read_excel(excel_path, header=None)
             print(f"Excel file loaded with {len(df)} rows")
+            print(f"Sample Excel data: {df.head(3).to_string()}")
             
             for i, row in df.iterrows():
                 try:
@@ -87,17 +89,20 @@ def load_west_la_ice_customers() -> List[Customer]:
                 depot = excel_customer['depot']
             else:
                 address = excel_customer['address']
-                if ('Lufkin' in address or 'TX' in address or 'Huntington' in address or 
-                    'Zavalla' in address or 'Ratcliff' in address or 'TX 759' in address or
-                    'Hwy 69' in address or 'TX-7' in address or 'Palestine' in address or
-                    'Jacksonville' in address or 'Henderson' in address or 'Kilgore' in address or
-                    'Nacogdoches' in address or 'Longview' in address or 'Gladewater' in address or
-                    'White Oak' in address or 'Hallsville' in address or 'Tatum' in address):
+                if ('Lufkin' in address or 'Huntington' in address or 
+                    'Zavalla' in address or 'Ratcliff' in address or 
+                    'Nacogdoches' in address or 'Palestine' in address):
                     depot = 'Lufkin'
                 elif 'Lake Charles' in address or 'LA 706' in address:
                     depot = 'Lake Charles'
                 else:
-                    depot = 'Leesville'
+                    if 'LA' in address or 'Louisiana' in address:
+                        depot = 'Leesville'
+                    elif 'TX' in address or 'Texas' in address:
+                        depot = 'Lufkin'
+                    else:
+                        depot_options = ['Leesville', 'Lake Charles', 'Lufkin']
+                        depot = depot_options[i % 3]
             
             latitude = None
             longitude = None
@@ -132,6 +137,13 @@ def load_west_la_ice_customers() -> List[Customer]:
     
     print(f"Created {len(customers)} customers with hybrid approach (names from Excel, coordinates from Google Sheets)")
     
+    depot_counts = {}
+    for customer in customers:
+        depot_counts[customer.depot] = depot_counts.get(customer.depot, 0) + 1
+    print("Depot distribution:")
+    for depot, count in sorted(depot_counts.items()):
+        print(f"  {depot}: {count} customers")
+    
     if customers:
         return customers
     
@@ -155,17 +167,19 @@ def load_west_la_ice_customers() -> List[Customer]:
                             assigned_depot = customer_data.get("depot", depot)
                             if assigned_depot == "all":
                                 address = customer_data["address"]
-                                if ('Lufkin' in address or 'TX' in address or 'Huntington' in address or 
-                                    'Zavalla' in address or 'Ratcliff' in address or 'TX 759' in address or
-                                    'Hwy 69' in address or 'TX-7' in address or 'Palestine' in address or
-                                    'Jacksonville' in address or 'Henderson' in address or 'Kilgore' in address or
-                                    'Nacogdoches' in address or 'Longview' in address or 'Gladewater' in address or
-                                    'White Oak' in address or 'Hallsville' in address or 'Tatum' in address):
+                                if ('Lufkin' in address or 'Huntington' in address or 
+                                    'Zavalla' in address or 'Ratcliff' in address or 
+                                    'Nacogdoches' in address or 'Palestine' in address):
                                     assigned_depot = 'Lufkin'
                                 elif 'Lake Charles' in address or 'LA 706' in address:
                                     assigned_depot = 'Lake Charles'
-                                else:
+                                elif 'LA' in address or 'Louisiana' in address:
                                     assigned_depot = 'Leesville'
+                                elif 'TX' in address or 'Texas' in address:
+                                    assigned_depot = 'Lufkin'
+                                else:
+                                    depot_options = ['Leesville', 'Lake Charles', 'Lufkin']
+                                    assigned_depot = depot_options[i % 3]
                             
                             customer = Customer(
                                 id=len(all_customers) + 1,

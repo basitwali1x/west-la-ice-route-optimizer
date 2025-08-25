@@ -126,3 +126,25 @@ class VisitTrackingUpdate(BaseModel):
     visited_date: datetime
     depot: str
     truck_id: Optional[str] = None
+
+class CustomerCreateRequest(BaseModel):
+    name: str
+    address: str
+    depot: str
+    phone: Optional[str] = None
+    priority_level: str = "STANDARD"
+    weekly_visit_required: bool = True
+
+class CustomerUpdateRequest(BaseModel):
+    id: int
+    name: Optional[str] = None
+    address: Optional[str] = None
+    depot: Optional[str] = None
+    phone: Optional[str] = None
+    priority_level: Optional[str] = None
+    weekly_visit_required: Optional[bool] = None
+
+class FourWeekScheduleResponse(BaseModel):
+    weeks: List[Dict[str, Any]]
+    total_customers: int
+    customers_per_week: int
