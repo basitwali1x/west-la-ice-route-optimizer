@@ -52,6 +52,7 @@ class VehicleRoute(BaseModel):
 
 class SheetsSync(BaseModel):
     sheet_id: str
+    location_filter: Optional[List[str]] = None
     last_sync: Optional[str] = None
     status: str = "pending"
 
@@ -106,6 +107,26 @@ class RouteValidationRequest(BaseModel):
 
 class RouteValidationResponse(BaseModel):
     valid: bool
+
+class DayRouteSync(BaseModel):
+    sheet_id: str
+    depot_filter: Optional[List[str]] = None
+    day_filter: Optional[List[str]] = None
+    location_filter: Optional[List[str]] = None
+
+class DeliveryCompletionUpdate(BaseModel):
+    sheet_id: str
+    truck_id: str
+    day: str
+    completed_stops: List[str]
+    completion_time: Optional[datetime] = None
+
+class AdvancedRebalanceRequest(BaseModel):
+    sheet_id: str
+    assignments: List[Dict[str, Any]]
+    validate_capacity: bool = True
+    update_day_tabs: bool = True
+
     errors: List[str]
     warnings: Optional[List[str]] = None
 

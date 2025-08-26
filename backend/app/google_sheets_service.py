@@ -47,7 +47,7 @@ class GoogleSheetsService:
         self.cache[key] = data
         self.cache_expiry[key] = datetime.now() + self.cache_duration
     
-    def sync_from_sheets(self, sheet_id: str) -> Dict[str, Any]:
+    def sync_from_sheets(self, sheet_id: str, location_filter: List[str] = None) -> Dict[str, Any]:
         cache_key = f"sync_{sheet_id}"
         
         if self._is_cache_valid(cache_key):
@@ -248,6 +248,81 @@ class GoogleSheetsService:
         except Exception as e:
             logger.error(f"Error updating route assignments: {e}")
             return False
+    def sync_day_specific_routes(self, sheet_id: str, location_filter: List[str] = None) -> Dict[str, Any]:
+        """Parse day-specific tabs like Lufkin_Day1, Leesville_Day1, etc."""
+        client = self._authenticate()
+        if not client:
+            return {"error": "Failed to authenticate with Google Sheets"}
+        
+        try:
+            sheet = client.open_by_key(sheet_id)
+            day_routes = {}
+            
+            for worksheet in sheet.worksheets():
+                title = worksheet.title
+                if '_Day' in title:
+                    depot_name = title.split('_Day')[0]
+                    day_number = title.split('_Day')[1]
+                    
+                    if location_filter and depot_name not in location_filter:
+                        continue
+                        
+                    routes = self._parse_day_routes(worksheet)
+                    
+                    if depot_name not in day_routes:
+                        day_routes[depot_name] = {}
+                    day_routes[depot_name][f"Day{day_number}"] = routes
+            
+            return {
+                "day_routes": day_routes,
+                "last_updated": datetime.now().isoformat()
+            }
+        except Exception as e:
+            logger.error(f"Error syncing day-specific routes: {e}")
+            return {"error": str(e)}
+
+    def update_delivery_completion(self, sheet_id: str, truck_id: str, day: str, completed_stops: List[str]) -> bool:
+        """Update delivery completion status in day-specific tabs"""
+        try:
+            client = self._authenticate()
+            if not client:
+                return False
+            
+            sheet = client.open_by_key(sheet_id)
+            
+            depot_name = truck_id[:-1] if truck_id[-1].isdigit() else truck_id
+            worksheet_name = f"{depot_name}_Day{day[-1] if day[-1].isdigit() else '1'}"
+            
+            try:
+                worksheet = sheet.worksheet(worksheet_name)
+                records = worksheet.get_all_records()
+                
+                for i, record in enumerate(records):
+                    if record.get('Truck ID') == truck_id and record.get('Customer') in completed_stops:
+                        try:
+                            status_col = worksheet.find('Status').col
+                            time_col = None
+                            try:
+                                time_col = worksheet.find('Completion Time').col
+                            except:
+                                pass
+                            
+                            worksheet.update_cell(i + 2, status_col, 'COMPLETED')
+                            if time_col:
+                                worksheet.update_cell(i + 2, time_col, datetime.now().strftime("%H:%M"))
+                        except Exception as cell_error:
+                            logger.error(f"Error updating cell for {record.get('Customer')}: {cell_error}")
+                
+                return True
+            except Exception as e:
+                logger.error(f"Error updating worksheet {worksheet_name}: {e}")
+                return False
+                
+        except Exception as e:
+            logger.error(f"Error updating delivery completion: {e}")
+            return False
+
+
     
     def update_visit_tracking(self, customer_id: str, customer_name: str, address: str, depot: str, visit_date: datetime, priority: str = "STANDARD") -> bool:
         """Update visit tracking in Google Sheets"""

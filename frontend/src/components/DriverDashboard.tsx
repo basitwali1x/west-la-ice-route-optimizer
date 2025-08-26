@@ -3,16 +3,16 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/
 import { Button } from './ui/button';
 import { Badge } from './ui/badge';
 import { Alert, AlertDescription } from './ui/alert';
-import { 
-  Clock, 
-  Truck, 
-  Navigation, 
+import {
+  Clock,
+  Truck,
+  Navigation,
   AlertTriangle,
   CheckCircle,
   Loader2,
   Calendar
 } from 'lucide-react';
-import { api, DriverRoute } from '../services/api';
+import { api, DriverRoute, updateDeliveryCompletion } from '../services/api';
 
 interface DriverDashboardProps {
   truckId?: string;
@@ -52,7 +52,7 @@ export function DriverDashboard({ truckId = 'L1', day = 'Monday' }: DriverDashbo
     try {
       const result = await api.getDriverRoutes(selectedTruck, selectedDay);
       setRoutes(result.routes || []);
-      
+
       if (!result.routes || result.routes.length === 0) {
         setError(`No routes found for truck ${selectedTruck} on ${selectedDay}. Please run route optimization first or sync data from Google Sheets.`);
       }
@@ -71,12 +71,23 @@ export function DriverDashboard({ truckId = 'L1', day = 'Monday' }: DriverDashbo
     }
   };
 
-  const toggleStopCompletion = (stopId: string) => {
+  const toggleStopCompletion = async (stopId: string) => {
     const newCompleted = new Set(completedStops);
     if (newCompleted.has(stopId)) {
       newCompleted.delete(stopId);
     } else {
       newCompleted.add(stopId);
+
+      try {
+        await updateDeliveryCompletion({
+          sheet_id: '1priXmXhtP2vVSQ1XUa-Y18-O96OsZ9Qw',
+          truck_id: selectedTruck,
+          day: selectedDay,
+          completed_stops: [stopId]
+        });
+      } catch (error) {
+        console.error('Failed to update delivery completion in sheets:', error);
+      }
     }
     setCompletedStops(newCompleted);
   };
@@ -91,7 +102,7 @@ export function DriverDashboard({ truckId = 'L1', day = 'Monday' }: DriverDashbo
     const totalStops = routes.reduce((sum, route) => sum + route.stops.length, 0);
     const completedCount = completedStops.size;
     const percentage = totalStops > 0 ? Math.round((completedCount / totalStops) * 100) : 0;
-    
+
     return { totalStops, completedCount, percentage };
   };
 
@@ -134,7 +145,7 @@ export function DriverDashboard({ truckId = 'L1', day = 'Monday' }: DriverDashbo
                 ))}
               </select>
             </div>
-            
+
             <div className="space-y-2">
               <label className="text-sm font-medium">Day</label>
               <select
@@ -167,7 +178,7 @@ export function DriverDashboard({ truckId = 'L1', day = 'Monday' }: DriverDashbo
                 </Badge>
               </div>
               <div className="mt-2 bg-white rounded-full h-2">
-                <div 
+                <div
                   className="bg-blue-600 h-2 rounded-full transition-all duration-300"
                   style={{ width: `${stats.percentage}%` }}
                 />
@@ -188,7 +199,7 @@ export function DriverDashboard({ truckId = 'L1', day = 'Monday' }: DriverDashbo
         <Alert>
           <AlertTriangle className="h-4 w-4" />
           <AlertDescription>
-            No routes found for truck {selectedTruck} on {selectedDay}. 
+            No routes found for truck {selectedTruck} on {selectedDay}.
             Please run route optimization first or sync data from Google Sheets.
           </AlertDescription>
         </Alert>
@@ -216,28 +227,28 @@ export function DriverDashboard({ truckId = 'L1', day = 'Monday' }: DriverDashbo
               {route.stops.map((stop: RouteStop, stopIndex) => {
                 const isCompleted = completedStops.has(stop.customer_id);
                 const isPriority = route.priority_stops.includes(stop.customer_id);
-                
+
                 return (
                   <div
                     key={stop.customer_id}
                     className={`p-4 rounded-lg border transition-all ${
-                      isCompleted 
-                        ? 'bg-green-50 border-green-200' 
-                        : isPriority 
-                        ? 'bg-orange-50 border-orange-200' 
+                      isCompleted
+                        ? 'bg-green-50 border-green-200'
+                        : isPriority
+                        ? 'bg-orange-50 border-orange-200'
                         : 'bg-gray-50 border-gray-200'
                     }`}
                   >
                     <div className="flex items-start justify-between">
                       <div className="flex items-start space-x-3 flex-1">
                         <div className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${
-                          isCompleted 
-                            ? 'bg-green-100 text-green-800' 
+                          isCompleted
+                            ? 'bg-green-100 text-green-800'
                             : 'bg-blue-100 text-blue-800'
                         }`}>
                           {stopIndex + 1}
                         </div>
-                        
+
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center space-x-2 mb-1">
                             <h4 className="font-medium text-gray-900">{stop.customer_name}</h4>
@@ -250,9 +261,9 @@ export function DriverDashboard({ truckId = 'L1', day = 'Monday' }: DriverDashbo
                               <CheckCircle className="h-4 w-4 text-green-600" />
                             )}
                           </div>
-                          
+
                           <p className="text-sm text-gray-600 mb-2">{stop.address}</p>
-                          
+
                           {stop.estimated_time && (
                             <div className="flex items-center space-x-1 text-xs text-gray-500">
                               <Clock className="h-3 w-3" />
@@ -261,7 +272,7 @@ export function DriverDashboard({ truckId = 'L1', day = 'Monday' }: DriverDashbo
                           )}
                         </div>
                       </div>
-                      
+
                       <div className="flex items-center space-x-2 ml-4">
                         <Button
                           size="sm"
@@ -272,7 +283,7 @@ export function DriverDashboard({ truckId = 'L1', day = 'Monday' }: DriverDashbo
                           <Navigation className="h-3 w-3" />
                           <span className="hidden sm:inline">Navigate</span>
                         </Button>
-                        
+
                         <Button
                           size="sm"
                           variant={isCompleted ? "default" : "outline"}

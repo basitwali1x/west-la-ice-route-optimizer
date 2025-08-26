@@ -5,7 +5,7 @@ import os
 from typing import List
 from datetime import datetime
 
-from .models import Customer, RouteOptimizationRequest, RouteOptimizationResponse, VehicleRoute, DepotLocation, RouteValidationRequest, RouteValidationResponse, SheetsSync, TruckAssignment, DriverRoute, SheetsData, WeeklyVisitStatus, WeeklyResetRequest, VisitTrackingUpdate
+from .models import Customer, RouteOptimizationRequest, RouteOptimizationResponse, VehicleRoute, DepotLocation, RouteValidationRequest, RouteValidationResponse, SheetsSync, TruckAssignment, DriverRoute, SheetsData, WeeklyVisitStatus, WeeklyResetRequest, VisitTrackingUpdate, DayRouteSync, DeliveryCompletionUpdate, AdvancedRebalanceRequest
 from .customer_data import load_west_la_ice_customers, get_customer_count
 from .route_optimizer import RouteOptimizer, DEPOT_CONSTRAINTS
 from .google_maps_service import GoogleMapsService
@@ -112,7 +112,7 @@ async def optimize_routes(request: RouteOptimizationRequest):
 async def sync_from_sheets(sheets_sync: SheetsSync):
     """Pull latest depot assignments from Google Sheets"""
     try:
-        result = sheets_service.sync_from_sheets(sheets_sync.sheet_id)
+        result = sheets_service.sync_from_sheets(sheets_sync.sheet_id, sheets_sync.location_filter)
         if "error" in result:
             raise HTTPException(status_code=400, detail=result["error"])
         
@@ -631,3 +631,92 @@ async def optimize_complete_weekly_routes(request: RouteOptimizationRequest):
         
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error optimizing complete weekly routes: {str(e)}")
+
+@app.post("/sync-day-routes")
+async def sync_day_routes(day_sync: DayRouteSync):
+    """Pull day-specific route assignments from Google Sheets"""
+    try:
+        result = sheets_service.sync_day_specific_routes(day_sync.sheet_id, day_sync.location_filter)
+        if "error" in result:
+            raise HTTPException(status_code=400, detail=result["error"])
+        
+        return {
+            "status": "success",
+            "data": result,
+            "message": f"Successfully synced day-specific routes from sheet {day_sync.sheet_id}"
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to sync day routes: {str(e)}")
+
+@app.post("/update-delivery-completion")
+async def update_delivery_completion(completion_data: DeliveryCompletionUpdate):
+    """Update delivery completion status in Google Sheets"""
+    try:
+        success = sheets_service.update_delivery_completion(
+            completion_data.sheet_id,
+            completion_data.truck_id,
+            completion_data.day,
+            completion_data.completed_stops
+        )
+        
+        if success:
+            return {
+                "status": "success",
+                "message": "Delivery completion updated successfully"
+            }
+        else:
+            raise HTTPException(status_code=500, detail="Failed to update delivery completion")
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to update delivery completion: {str(e)}")
+
+@app.post("/rebalance-trucks-advanced")
+async def rebalance_trucks_advanced(rebalance_data: AdvancedRebalanceRequest):
+    """Advanced dynamic truck reallocation with capacity validation"""
+    try:
+        from .route_optimizer import DEPOT_CONSTRAINTS
+        
+        if rebalance_data.validate_capacity:
+            depot_counts = {}
+            for assignment in rebalance_data.assignments:
+                depot = assignment.get('depot')
+                if depot not in depot_counts:
+                    depot_counts[depot] = 0
+                depot_counts[depot] += len(assignment.get('stop_sequence', []))
+            
+            violations = []
+            for depot, count in depot_counts.items():
+                max_capacity = DEPOT_CONSTRAINTS.get(depot, {}).get('weekly_capacity', 200)
+                if count > max_capacity:
+                    violations.append(f"{depot} exceeds capacity: {count}/{max_capacity}")
+            
+            if violations:
+                return {
+                    "status": "validation_failed",
+                    "violations": violations,
+                    "message": "Rebalancing would violate depot capacity constraints"
+                }
+        
+        success = sheets_service.update_route_assignments(rebalance_data.sheet_id, rebalance_data.assignments)
+        
+        day_update_success = True
+        if rebalance_data.update_day_tabs:
+            for assignment in rebalance_data.assignments:
+                day_success = sheets_service.update_delivery_completion(
+                    rebalance_data.sheet_id, 
+                    assignment.get('truck_id'), 
+                    assignment.get('day', 'Monday'), 
+                    []
+                )
+                day_update_success = day_update_success and day_success
+        
+        if success:
+            return {
+                "status": "success",
+                "message": "Advanced truck rebalancing completed successfully",
+                "day_tabs_updated": day_update_success
+            }
+        else:
+            raise HTTPException(status_code=500, detail="Failed to update route assignments")
+            
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to rebalance trucks: {str(e)}")
