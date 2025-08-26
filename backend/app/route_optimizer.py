@@ -398,7 +398,7 @@ class RouteOptimizer:
             search_parameters.local_search_metaheuristic = (
                 routing_enums_pb2.LocalSearchMetaheuristic.GUIDED_LOCAL_SEARCH
             )
-            search_parameters.time_limit.FromSeconds(30)
+            search_parameters.time_limit.FromSeconds(120)
             
             solution = routing.SolveWithParameters(search_parameters)
             
@@ -634,7 +634,7 @@ class RouteOptimizer:
         search_parameters.local_search_metaheuristic = (
             routing_enums_pb2.LocalSearchMetaheuristic.GUIDED_LOCAL_SEARCH
         )
-        search_parameters.time_limit.FromSeconds(30)
+        search_parameters.time_limit.FromSeconds(120)
         
         solution = routing.SolveWithParameters(search_parameters)
         
