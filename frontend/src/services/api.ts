@@ -234,3 +234,60 @@ export const optimizeWeeklyRoutes = async (request: RouteOptimizationRequest) =>
     throw error;
   }
 };
+
+export const syncDayRoutes = async (sheetsSync: SheetsSync) => {
+  try {
+    const response = await fetch(`${API_URL}/sync-day-routes`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(sheetsSync),
+    });
+    if (!response.ok) {
+      throw new Error('Failed to sync day routes');
+    }
+    return await response.json();
+  } catch (error) {
+    console.error('Error syncing day routes:', error);
+    throw error;
+  }
+};
+
+export const updateDeliveryCompletion = async (completionData: any) => {
+  try {
+    const response = await fetch(`${API_URL}/update-delivery-completion`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(completionData),
+    });
+    if (!response.ok) {
+      throw new Error('Failed to update delivery completion');
+    }
+    return await response.json();
+  } catch (error) {
+    console.error('Error updating delivery completion:', error);
+    throw error;
+  }
+};
+
+export const rebalanceTrucksAdvanced = async (rebalanceData: any) => {
+  try {
+    const response = await fetch(`${API_URL}/rebalance-trucks-advanced`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(rebalanceData),
+    });
+    if (!response.ok) {
+      throw new Error('Failed to rebalance trucks (advanced)');
+    }
+    return await response.json();
+  } catch (error) {
+    console.error('Error rebalancing trucks (advanced):', error);
+    throw error;
+  }
+};
