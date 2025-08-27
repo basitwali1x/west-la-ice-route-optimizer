@@ -62,7 +62,7 @@ PRIORITY_RULES = {
 }
 
 class RouteOptimizer:
-    def __init__(self, depot_radius: float = 75, max_stops: int = 25, truck_allocations: dict = None):
+    def __init__(self, depot_radius: float = 75, max_stops: int = 25, truck_allocations: Optional[dict] = None):
         self.google_maps = GoogleMapsService()
         self.depot_radius = depot_radius
         self.max_stops = max_stops
@@ -116,7 +116,7 @@ class RouteOptimizer:
             depot: DEPOT_CONSTRAINTS[depot]["weekly_capacity"] - current_assignments.get(depot, 0)
             for depot in DEPOT_CONSTRAINTS.keys()
         }
-        return max(remaining_capacity, key=remaining_capacity.get)
+        return max(remaining_capacity.keys(), key=lambda depot: remaining_capacity[depot])
     
     def filter_unvisited_customers(self, customers: List[Customer]) -> List[Customer]:
         """Filter customers who haven't been visited this week"""
@@ -237,17 +237,17 @@ class RouteOptimizer:
             customers_with_coords = []
             
             for customer in request.customers:
-                coords = await self.google_maps.get_coordinates(customer.address)
+                coords = await self.google_maps.geocode_address(customer.address)
                 if coords:
-                    customer.latitude = coords['lat']
-                    customer.longitude = coords['lng']
+                    customer.latitude = coords[0]  # geocode_address returns (lat, lng) tuple
+                    customer.longitude = coords[1]
                     
                     if not customer.depot:
                         customer.depot = self._assign_depot_by_radius(coords, request.depot_address)
                     
                     customers_with_coords.append(customer)
             
-            depot_coords = await self.google_maps.get_coordinates(request.depot_address)
+            depot_coords = await self.google_maps.geocode_address(request.depot_address)
             if not depot_coords:
                 raise ValueError("Could not geocode depot address")
             
@@ -398,7 +398,7 @@ class RouteOptimizer:
             search_parameters.local_search_metaheuristic = (
                 routing_enums_pb2.LocalSearchMetaheuristic.GUIDED_LOCAL_SEARCH
             )
-            search_parameters.time_limit.FromSeconds(120)
+            search_parameters.time_limit.FromSeconds(300)  # Increased from 120 to 300 seconds
             
             solution = routing.SolveWithParameters(search_parameters)
             
@@ -634,7 +634,7 @@ class RouteOptimizer:
         search_parameters.local_search_metaheuristic = (
             routing_enums_pb2.LocalSearchMetaheuristic.GUIDED_LOCAL_SEARCH
         )
-        search_parameters.time_limit.FromSeconds(120)
+        search_parameters.time_limit.FromSeconds(300)  # Increased from 120 to 300 seconds
         
         solution = routing.SolveWithParameters(search_parameters)
         

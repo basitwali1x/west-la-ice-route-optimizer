@@ -107,7 +107,7 @@ class GoogleMapsService:
         
         print(f"Calculating distance matrix for {n} locations ({n*n} total calculations)")
         
-        if n > 100:
+        if n > 50:  # Reduced from 100 to 50
             print("Using simplified distance calculation for large dataset")
             return self._calculate_simplified_distance_matrix(locations, depot_penalties)
         
