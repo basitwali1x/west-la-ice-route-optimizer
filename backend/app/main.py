@@ -90,6 +90,23 @@ async def optimize_routes(request: RouteOptimizationRequest):
             )
             depot_locations.append(depot_location)
         
+        scheduled_customers = []
+        for route in routes:
+            for point in route.route_points:
+                scheduled_customers.append({
+                    "customer_id": point.customer_id,
+                    "customer_name": point.customer_name,
+                    "address": point.address,
+                    "depot": route.depot_name,
+                    "vehicle_id": route.vehicle_id,
+                    "day": route.day,
+                    "stop_sequence": point.order
+                })
+        
+        customers_scheduled = len(scheduled_customers)
+        total_customers = len(request.customers)
+        customers_remaining = total_customers - customers_scheduled
+        
         result = RouteOptimizationResponse(
             routes=routes,
             total_distance_miles=round(total_distance, 2),
@@ -97,7 +114,11 @@ async def optimize_routes(request: RouteOptimizationRequest):
             depot_locations=depot_locations,
             status="complete",
             progress=100,
-            constraint_violations=all_violations
+            constraint_violations=all_violations,
+            customers_scheduled=customers_scheduled,
+            customers_remaining=customers_remaining,
+            total_customers=total_customers,
+            scheduled_customers=scheduled_customers
         )
         
         global optimization_results_cache
@@ -548,6 +569,23 @@ async def optimize_weekly_routes(request: RouteOptimizationRequest):
             )
             depot_locations.append(depot_location)
         
+        scheduled_customers = []
+        for route in routes:
+            for point in route.route_points:
+                scheduled_customers.append({
+                    "customer_id": point.customer_id,
+                    "customer_name": point.customer_name,
+                    "address": point.address,
+                    "depot": route.depot_name,
+                    "vehicle_id": route.vehicle_id,
+                    "day": route.day,
+                    "stop_sequence": point.order
+                })
+        
+        customers_scheduled = len(scheduled_customers)
+        total_customers = len(request.customers)
+        customers_remaining = total_customers - customers_scheduled
+        
         result = RouteOptimizationResponse(
             routes=routes,
             total_distance_miles=round(total_distance, 2),
@@ -555,7 +593,11 @@ async def optimize_weekly_routes(request: RouteOptimizationRequest):
             depot_locations=depot_locations,
             status="complete",
             progress=100,
-            constraint_violations=all_violations
+            constraint_violations=all_violations,
+            customers_scheduled=customers_scheduled,
+            customers_remaining=customers_remaining,
+            total_customers=total_customers,
+            scheduled_customers=scheduled_customers
         )
         
         global optimization_results_cache
@@ -614,6 +656,23 @@ async def optimize_complete_weekly_routes(request: RouteOptimizationRequest):
             )
             depot_locations.append(depot_location)
         
+        scheduled_customers = []
+        for route in routes:
+            for point in route.route_points:
+                scheduled_customers.append({
+                    "customer_id": point.customer_id,
+                    "customer_name": point.customer_name,
+                    "address": point.address,
+                    "depot": route.depot_name,
+                    "vehicle_id": route.vehicle_id,
+                    "day": route.day,
+                    "stop_sequence": point.order
+                })
+        
+        customers_scheduled = len(scheduled_customers)
+        total_customers = len(request.customers)
+        customers_remaining = total_customers - customers_scheduled
+        
         result = RouteOptimizationResponse(
             routes=routes,
             total_distance_miles=round(total_distance, 2),
@@ -621,7 +680,11 @@ async def optimize_complete_weekly_routes(request: RouteOptimizationRequest):
             depot_locations=depot_locations,
             status="complete",
             progress=100,
-            constraint_violations=all_violations
+            constraint_violations=all_violations,
+            customers_scheduled=customers_scheduled,
+            customers_remaining=customers_remaining,
+            total_customers=total_customers,
+            scheduled_customers=scheduled_customers
         )
         
         global optimization_results_cache

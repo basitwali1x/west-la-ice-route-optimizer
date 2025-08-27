@@ -92,6 +92,10 @@ class RouteOptimizationResponse(BaseModel):
     status: str = "complete"
     progress: int = 100
     constraint_violations: Optional[List[str]] = None
+    customers_scheduled: int = 0
+    customers_remaining: int = 0
+    total_customers: int = 0
+    scheduled_customers: Optional[List[Dict[str, Any]]] = None
 
 class DepotConstraint(BaseModel):
     depot_name: str

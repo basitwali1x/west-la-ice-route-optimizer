@@ -49,6 +49,18 @@ export interface RouteOptimizationResponse {
   status: string;
   progress: number;
   constraint_violations?: string[];
+  customers_scheduled: number;
+  customers_remaining: number;
+  total_customers: number;
+  scheduled_customers?: Array<{
+    customer_id: string;
+    customer_name: string;
+    address: string;
+    depot: string;
+    vehicle_id: string;
+    day: string;
+    stop_sequence: number;
+  }>;
 }
 
 export interface RouteOptimizationRequest {

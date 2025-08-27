@@ -277,12 +277,33 @@ class RouteOptimizer:
             total_distance = sum(route.total_distance_miles for route in all_routes)
             total_time = sum(route.total_time_minutes for route in all_routes)
             
+            scheduled_customers = []
+            for route in all_routes:
+                for point in route.route_points:
+                    scheduled_customers.append({
+                        "customer_id": point.customer_id,
+                        "customer_name": point.customer_name,
+                        "address": point.address,
+                        "depot": route.depot_name,
+                        "vehicle_id": route.vehicle_id,
+                        "day": route.day,
+                        "stop_sequence": point.order
+                    })
+            
+            customers_scheduled = len(scheduled_customers)
+            total_customers = len(customers_with_coords)
+            customers_remaining = total_customers - customers_scheduled
+            
             return RouteOptimizationResponse(
                 routes=all_routes,
                 total_distance_miles=total_distance,
                 total_time_minutes=total_time,
                 depot_locations=[],
-                status="success"
+                status="success",
+                customers_scheduled=customers_scheduled,
+                customers_remaining=customers_remaining,
+                total_customers=total_customers,
+                scheduled_customers=scheduled_customers
             )
             
         except Exception as e:
@@ -294,7 +315,11 @@ class RouteOptimizer:
                 total_distance_miles=0,
                 total_time_minutes=0,
                 depot_locations=[],
-                status=f"error: {str(e)}"
+                status=f"error: {str(e)}",
+                customers_scheduled=0,
+                customers_remaining=0,
+                total_customers=0,
+                scheduled_customers=[]
             )
     
     def _assign_depot_by_radius(self, customer_coords: dict, depot_address: str) -> str:
@@ -393,12 +418,13 @@ class RouteOptimizer:
             
             search_parameters = pywrapcp.DefaultRoutingSearchParameters()
             search_parameters.first_solution_strategy = (
-                routing_enums_pb2.FirstSolutionStrategy.PATH_CHEAPEST_ARC
+                routing_enums_pb2.FirstSolutionStrategy.PARALLEL_CHEAPEST_INSERTION
             )
             search_parameters.local_search_metaheuristic = (
                 routing_enums_pb2.LocalSearchMetaheuristic.GUIDED_LOCAL_SEARCH
             )
-            search_parameters.time_limit.FromSeconds(300)  # Increased from 120 to 300 seconds
+            timeout_seconds = min(600, max(120, len(customers) * 0.5))
+            search_parameters.time_limit.FromSeconds(timeout_seconds)
             
             solution = routing.SolveWithParameters(search_parameters)
             
@@ -629,12 +655,13 @@ class RouteOptimizer:
         
         search_parameters = pywrapcp.DefaultRoutingSearchParameters()
         search_parameters.first_solution_strategy = (
-            routing_enums_pb2.FirstSolutionStrategy.PATH_CHEAPEST_ARC
+            routing_enums_pb2.FirstSolutionStrategy.PARALLEL_CHEAPEST_INSERTION
         )
         search_parameters.local_search_metaheuristic = (
             routing_enums_pb2.LocalSearchMetaheuristic.GUIDED_LOCAL_SEARCH
         )
-        search_parameters.time_limit.FromSeconds(300)  # Increased from 120 to 300 seconds
+        timeout_seconds = min(600, max(120, len(customers) * 0.5))
+        search_parameters.time_limit.FromSeconds(timeout_seconds)
         
         solution = routing.SolveWithParameters(search_parameters)
         

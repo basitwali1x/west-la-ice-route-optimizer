@@ -602,6 +602,22 @@ function App() {
                       <span className="font-medium">{(optimizationResult.total_time_minutes / 60).toFixed(1)} hours</span>
                     </div>
                     <div className="flex justify-between items-center">
+                      <span className="text-sm text-gray-600">Customers Scheduled</span>
+                      <span className="font-medium">{optimizationResult.customers_scheduled || 0} / {optimizationResult.total_customers || 0}</span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm text-gray-600">Customers Remaining</span>
+                      <Badge variant={optimizationResult.customers_remaining > 0 ? "destructive" : "default"}>
+                        {optimizationResult.customers_remaining || 0}
+                      </Badge>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm text-gray-600">Delivery Coverage</span>
+                      <Badge variant="default">
+                        {optimizationResult.total_customers > 0 ? Math.round((optimizationResult.customers_scheduled / optimizationResult.total_customers) * 100) : 0}%
+                      </Badge>
+                    </div>
+                    <div className="flex justify-between items-center">
                       <span className="text-sm text-gray-600">Avg. Distance per Route</span>
                       <span className="font-medium">
                         {(optimizationResult.total_distance_miles / optimizationResult.routes.length).toFixed(1)} miles
