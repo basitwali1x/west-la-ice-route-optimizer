@@ -107,8 +107,7 @@ function App() {
             if (prev % 25 === 0) currentDepot++;
             return prev + 5;
           }
-          if (prev < 99) return prev + 1;
-          return prev;
+          return Math.min(prev + 2, 95);
         });
       }, 300);
 
@@ -201,8 +200,7 @@ function App() {
             if (prev % 25 === 0) currentDepot++;
             return prev + 5;
           }
-          if (prev < 99) return prev + 1;
-          return prev;
+          return Math.min(prev + 2, 95);
         });
       }, 300);
 
