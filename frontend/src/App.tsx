@@ -107,7 +107,10 @@ function App() {
             if (prev % 25 === 0) currentDepot++;
             return prev + 5;
           }
-          return Math.min(prev + 2, 95);
+          if (prev < 95) {
+            return prev + 2;
+          }
+          return prev; // Stop at 95% and let API completion handle 100%
         });
       }, 300);
 
@@ -200,7 +203,10 @@ function App() {
             if (prev % 25 === 0) currentDepot++;
             return prev + 5;
           }
-          return Math.min(prev + 2, 95);
+          if (prev < 95) {
+            return prev + 2;
+          }
+          return prev; // Stop at 95% and let API completion handle 100%
         });
       }, 300);
 
