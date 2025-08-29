@@ -16,7 +16,7 @@ export interface DriverRoute {
   priority_stops: string[];
 }
 
-const API_URL = import.meta.env.VITE_API_URL || 'https://app-yabalxgm.fly.dev';
+const API_URL = import.meta.env.VITE_API_URL || 'https://app-ezywugpc.fly.dev';
 
 export const api = {
   async getCustomers(): Promise<Customer[]> {

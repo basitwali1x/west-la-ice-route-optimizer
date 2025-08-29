@@ -107,7 +107,7 @@ function App() {
             if (prev % 25 === 0) currentDepot++;
             return prev + 5;
           }
-          if (prev < 98) return prev + 1;
+          if (prev < 99) return prev + 1;
           return prev;
         });
       }, 300);
@@ -201,7 +201,7 @@ function App() {
             if (prev % 25 === 0) currentDepot++;
             return prev + 5;
           }
-          if (prev < 90) return prev + 1;
+          if (prev < 99) return prev + 1;
           return prev;
         });
       }, 300);
