@@ -1,0 +1,192 @@
+Customer,Address,Depot_Assignment,Latitude,Longitude
+ST143,730 Anderson Ave  Beaumont  LA 72721,Lake Charles,30.068,-94.1548
+ST159,5574 Kelly Rd  Beaumont  LA 76482,Lake Charles,30.0785,-94.0994
+ST381,5585 Peterson St  Groves  LA 70245,Lake Charles,29.9346,-93.9241
+ST382,1075 Bennett Ave  Vinton  LA 75454,Lake Charles,30.195,-93.6052
+ST383,6379 Gonzales Rd  Lake Arthur  LA 70420,Lake Charles,30.1041,-92.6333
+ST384,5526 Gonzalez Ave  Abbeville  LA 70487,Lake Charles,29.9919,-92.1094
+ST385,3316 Gray Ave  Eunice  LA 70750,Lake Charles,30.4841,-92.4391
+ST386,8722 Gray Ave  Lafayette  LA 78674,Lake Charles,30.2496,-91.9966
+ST387,3434 Turner Ave  Crowley  LA 75173,Lake Charles,30.1879,-92.3874
+ST388,2164 Watson St  Welsh  LA 74085,Lake Charles,30.2659,-92.8227
+ST389,1831 Gonzalez Ave  Lake Arthur  LA 77914,Lake Charles,30.0947,-92.6273
+ST390,8414 White Ave  Westlake  LA 75964,Lake Charles,30.2605,-93.2373
+ST391,470 Morgan Ave  Lake Arthur  LA 74499,Lake Charles,30.0669,-92.643
+ST392,3861 Anderson Ave  Lafayette  LA 71895,Lake Charles,30.2452,-92.0311
+ST393,7398 Foster Ave  Westlake  LA 78732,Lake Charles,30.253,-93.2634
+ST394,8526 Rodriguez St  Groves  LA 70528,Lake Charles,29.9305,-93.9141
+ST395,6127 Mitchell Ave  New Iberia  LA 70471,Lake Charles,30.0318,-91.7968
+ST396,9622 Lopez Ave  Crowley  LA 76281,Lake Charles,30.239,-92.3901
+ST397,9244 Park Ave  Sulphur  LA 79591,Lake Charles,30.2583,-93.3984
+ST398,7511 Roberts St  Lafayette  LA 74540,Lake Charles,30.2207,-92.0081
+ST399,569 Phillips Dr  Lafayette  LA 72501,Lake Charles,30.2367,-92.0393
+ST400,9748 Green Ave  Crowley  LA 75528,Lake Charles,30.1843,-92.3853
+ST401,4342 Hill Dr  Lake Charles  LA 77682,Lake Charles,30.198,-93.2444
+ST402,2266 Martin St  Vinton  LA 72862,Lake Charles,30.2003,-93.5991
+ST403,3632 Oak Ave  Iowa  LA 74587,Lake Charles,30.2516,-92.9947
+ST404,6704 Cox St  Crowley  LA 70231,Lake Charles,30.1869,-92.3876
+ST405,9758 Barnes Dr  New Iberia  LA 73169,Lake Charles,29.9858,-91.8132
+ST406,2977 Coleman Rd  New Iberia  LA 72749,Lake Charles,29.9775,-91.8009
+ST407,728 Maple Ave  Opelousas  LA 75488,Lake Charles,30.5585,-92.0945
+ST408,8159 Anderson Ave  Lake Charles  LA 70990,Lake Charles,30.2557,-93.1986
+ST409,2715 Walker St  Jennings  LA 72013,Lake Charles,30.1933,-92.6601
+ST410,6516 Stewart Ave  Welsh  LA 72210,Lake Charles,30.2242,-92.8109
+ST411,857 Campbell St  Abbeville  LA 78947,Lake Charles,29.9503,-92.1484
+ST412,2310 Clark Dr  Welsh  LA 79931,Lake Charles,30.2639,-92.8094
+ST413,2114 Brooks Ave  Jennings  LA 74976,Lake Charles,30.2114,-92.6514
+ST414,7737 Madison Dr  Iowa  LA 78393,Lake Charles,30.2162,-93.0075
+ST415,3355 Jackson St  Orange  LA 75797,Lake Charles,30.0869,-93.7211
+ST416,7328 Parker Ave  Orange  LA 77332,Lake Charles,30.0698,-93.7501
+ST417,9760 Cooper Rd  Fannett  LA 73973,Lake Charles,29.8633,-94.2023
+ST418,3257 Garcia Rd  New Iberia  LA 76604,Lake Charles,30.0321,-91.8348
+ST419,9986 Brown Ave  Westlake  LA 70199,Lake Charles,30.2257,-93.2827
+ST420,4361 Maple Ave  Lafayette  LA 75778,Lake Charles,30.2127,-91.999
+ST421,8561 Campbell St  Jennings  LA 75272,Lake Charles,30.2004,-92.6317
+ST422,3202 Walker St  Jennings  LA 73600,Lake Charles,30.2032,-92.6558
+ST423,5275 Washington St  Opelousas  LA 79302,Lake Charles,30.5075,-92.0868
+ST424,6804 Carter St  Lafayette  LA 72818,Lake Charles,30.1959,-92.0044
+ST425,3267 Roberts St  Lake Charles  LA 75124,Lake Charles,30.2044,-93.2422
+ST426,6770 Price St  Crowley  LA 70188,Lake Charles,30.2217,-92.3958
+ST427,5494 Price St  Opelousas  LA 76761,Lake Charles,30.518,-92.0569
+ST428,5444 Gonzalez Ave  Orange  LA 73801,Lake Charles,30.0781,-93.7073
+ST429,5359 Harris Dr  Lafayette  LA 74933,Lake Charles,30.2296,-92.0423
+ST430,9283 Maple Ave  Abbeville  LA 71524,Lake Charles,29.9456,-92.1355
+ST431,4321 Pine Rd  New Iberia  LA 71481,Lake Charles,29.9911,-91.8112
+ST432,323 Wilson Dr  Welsh  LA 77807,Lake Charles,30.2242,-92.8391
+ST433,9336 Lewis Ave  Vinton  LA 75784,Lake Charles,30.2056,-93.5697
+ST434,6998 Roosevelt Ave  New Iberia  LA 76224,Lake Charles,30.0012,-91.7945
+ST435,7609 Thompson Ave  New Iberia  LA 78069,Lake Charles,30.0131,-91.8358
+ST436,6918 Ross St  Sulphur  LA 71472,Lake Charles,30.2495,-93.3876
+ST437,3875 Turner Ave  Abbeville  LA 78962,Lake Charles,29.9792,-92.1522
+ST438,4063 Thomas Rd  Lake Charles  LA 72473,Lake Charles,30.2488,-93.2241
+ST439,2852 Ross St  Westlake  LA 71806,Lake Charles,30.2576,-93.2834
+ST440,5469 Jenkins Dr  Lafayette  LA 77567,Lake Charles,30.2205,-92.002
+ST441,1913 Cook St  Vinton  LA 74770,Lake Charles,30.2024,-93.5715
+ST442,4280 Pine Rd  China  LA 77884,Lake Charles,30.0612,-94.3187
+ST443,3801 Gray Ave  Crowley  LA 79250,Lake Charles,30.1938,-92.3924
+ST444,6315 Parker Ave  Westlake  LA 76389,Lake Charles,30.2321,-93.2698
+ST445,3970 Jefferson Rd  Vinton  LA 73210,Lake Charles,30.2027,-93.5694
+ST446,788 Second St  Lake Arthur  LA 79539,Lake Charles,30.118,-92.6573
+ST447,3473 Moore Dr  Iowa  LA 74128,Lake Charles,30.2261,-93.0271
+ST448,1041 Torres Dr  Abbeville  LA 77148,Lake Charles,29.9562,-92.1144
+ST449,8420 Perry St  New Iberia  LA 79959,Lake Charles,29.9998,-91.8123
+ST450,226 Cook St  Lake Charles  LA 77821,Lake Charles,30.2297,-93.2072
+ST451,9058 Bailey St  Abbeville  LA 70206,Lake Charles,29.9951,-92.1324
+ST452,5572 Flores Ave  Jennings  LA 71857,Lake Charles,30.2284,-92.6759
+ST453,4004 Brown Ave  Iowa  LA 76197,Lake Charles,30.2504,-93.0381
+ST454,9346 Richardson Dr  Westlake  LA 79646,Lake Charles,30.2616,-93.2586
+ST455,6563 Morris St  Crowley  LA 76824,Lake Charles,30.2375,-92.4014
+ST456,6298 Cooper Rd  Orange  LA 72083,Lake Charles,30.0892,-93.7102
+ST457,6027 Nelson Dr  Iowa  LA 70812,Lake Charles,30.2248,-93.0393
+ST458,1731 Turner Ave  Iowa  LA 77769,Lake Charles,30.2579,-93.0189
+ST459,3882 Monroe St  Crowley  LA 78188,Lake Charles,30.2109,-92.3643
+ST460,8968 Harris Dr  Crowley  LA 75021,Lake Charles,30.2072,-92.348
+ST461,148 Jackson Blvd  Vinton  LA 70139,Lake Charles,30.1661,-93.5953
+ST462,3874 Madison Dr  Welsh  LA 71304,Lake Charles,30.2559,-92.8058
+ST463,732 Rodriguez St  Opelousas  LA 77567,Lake Charles,30.5295,-92.0711
+ST464,6680 Park Ave  Opelousas  LA 75413,Lake Charles,30.517,-92.0649
+ST465,5317 Sanders Dr  Lake Charles  LA 79544,Lake Charles,30.2473,-93.2176
+ST466,2912 Collins St  Westlake  LA 76141,Lake Charles,30.2655,-93.251
+ST467,2065 Bennett Ave  Welsh  LA 71943,Lake Charles,30.2276,-92.8326
+ST468,4719 Martinez St  Westlake  LA 72497,Lake Charles,30.2302,-93.2582
+ST469,8043 Wood Rd  Eunice  LA 71955,Lake Charles,30.5017,-92.4282
+ST470,9752 Oak Ave  New Iberia  LA 75220,Lake Charles,30.0249,-91.8404
+ST471,9387 Anderson Ave  Orange  LA 75921,Lake Charles,30.1025,-93.7478
+ST472,4058 Maple Ave  Vinton  LA 76330,Lake Charles,30.1602,-93.5677
+ST473,5694 King Rd  Nederland  LA 73949,Lake Charles,29.9887,-93.9939
+ST474,8907 Wright St  Crowley  LA 73480,Lake Charles,30.2144,-92.3638
+ST475,5581 Perez Rd  Lafayette  LA 75065,Lake Charles,30.2138,-92.0122
+ST476,3970 Thomas Rd  Crowley  LA 73604,Lake Charles,30.1939,-92.394
+ST477,7065 Lopez Ave  Eunice  LA 75753,Lake Charles,30.4892,-92.4257
+ST478,9089 Turner Ave  Sulphur  LA 76929,Lake Charles,30.2169,-93.3478
+ST479,1629 Powell Ave  Iowa  LA 75652,Lake Charles,30.2195,-93.0414
+ST480,7217 Bell Rd  Opelousas  LA 72946,Lake Charles,30.5245,-92.071
+ST481,3887 Robinson Ave  Lake Charles  LA 72758,Lake Charles,30.2,-93.2016
+ST482,1353 Franklin St  Lake Charles  LA 71430,Lake Charles,30.2449,-93.2265
+ST483,8760 Roosevelt Ave  New Iberia  LA 72650,Lake Charles,29.9937,-91.811
+ST484,8202 Torres Dr  Crowley  LA 77918,Lake Charles,30.2401,-92.3933
+ST485,606 Morris St  Sulphur  LA 77535,Lake Charles,30.2472,-93.3842
+ST486,6107 Washington Rd  Crowley  LA 70561,Lake Charles,30.2247,-92.3905
+ST487,2723 Thomas Rd  Jennings  LA 78640,Lake Charles,30.2469,-92.678
+ST488,5342 Butler Dr  Abbeville  LA 72232,Lake Charles,29.9527,-92.1398
+ST489,5583 Hall Ave  Eunice  LA 76964,Lake Charles,30.4897,-92.3991
+ST490,7669 Nelson Dr  Welsh  LA 72540,Lake Charles,30.2524,-92.8142
+ST491,9442 Thompson Ave  Orange  LA 73977,Lake Charles,30.0695,-93.7655
+ST492,9230 Lee Rd  Lake Arthur  LA 76468,Lake Charles,30.1135,-92.6725
+ST493,8182 Long Rd  Lake Arthur  LA 74693,Lake Charles,30.1011,-92.6455
+ST494,3599 White Ave  Abbeville  LA 73190,Lake Charles,29.9648,-92.1521
+ST495,1484 Richardson Dr  Lake Charles  LA 75344,Lake Charles,30.2047,-93.2399
+ST496,2269 Church St  Westlake  LA 78748,Lake Charles,30.2767,-93.2898
+ST497,1199 Hall Ave  Westlake  LA 76985,Lake Charles,30.2739,-93.2534
+ST498,1281 Allen Dr  Lake Charles  LA 74373,Lake Charles,30.2149,-93.1877
+ST499,9352 Robinson Ave  Sulphur  LA 74713,Lake Charles,30.2079,-93.3554
+ST500,1052 Bennett Ave  Jennings  LA 72320,Lake Charles,30.2303,-92.6633
+ST501,8970 Cook St  Lake Arthur  LA 73690,Lake Charles,30.0624,-92.6519
+ST502,2048 Elm Dr  Sulphur  LA 79455,Lake Charles,30.2332,-93.3709
+ST503,5609 Anderson Ave  Lake Charles  LA 79055,Lake Charles,30.2047,-93.1927
+ST504,2598 Watson St  Iowa  LA 74377,Lake Charles,30.2577,-93.0121
+ST505,2127 Gray Ave  Iowa  LA 75617,Lake Charles,30.2204,-93.0228
+ST506,4253 Cooper Rd  Iowa  LA 74926,Lake Charles,30.2355,-93.0265
+ST507,8375 Carter St  Eunice  LA 70763,Lake Charles,30.4979,-92.4235
+ST508,8598 Kelly Rd  Abbeville  LA 71618,Lake Charles,29.9503,-92.1402
+ST509,8312 First St  Vinton  LA 77803,Lake Charles,30.1745,-93.5976
+ST510,9630 Coleman Rd  Beaumont  LA 74825,Lake Charles,30.0584,-94.0989
+ST511,2519 Flores Ave  Westlake  LA 77324,Lake Charles,30.2784,-93.2472
+ST512,4500 Jackson St  Westlake  LA 71993,Lake Charles,30.261,-93.2512
+ST513,7503 Phillips Dr  Iowa  LA 76652,Lake Charles,30.2568,-93.0403
+ST514,7191 Lewis Ave  Crowley  LA 72239,Lake Charles,30.1959,-92.3866
+ST515,7827 Bell Rd  Abbeville  LA 78091,Lake Charles,29.9703,-92.1278
+ST516,7302 Cedar Ln  Opelousas  LA 71830,Lake Charles,30.5549,-92.106
+ST517,2181 Rivera Ave  Sulphur  LA 74604,Lake Charles,30.2535,-93.3968
+ST518,1073 Jefferson Rd  Vidor  LA 76560,Lake Charles,30.1121,-94.0171
+ST519,573 Martinez St  Lake Charles  LA 78650,Lake Charles,30.2049,-93.2184
+ST520,7129 Davis Rd  Abbeville  LA 72210,Lake Charles,29.99,-92.1397
+ST521,5887 Morgan Ave  Jennings  LA 75451,Lake Charles,30.194,-92.665
+ST522,4961 Turner Ave  Lafayette  LA 77403,Lake Charles,30.2383,-92.0244
+ST523,3502 Howard Ave  Vinton  LA 78157,Lake Charles,30.1646,-93.605
+ST524,5333 Pine Rd  Jennings  LA 77986,Lake Charles,30.2193,-92.6596
+ST525,443 Perez Rd  Jennings  LA 71157,Lake Charles,30.2107,-92.6331
+ST526,7988 Sanchez Rd  Eunice  LA 75050,Lake Charles,30.4782,-92.412
+ST527,2247 Morgan Ave  Jennings  LA 72493,Lake Charles,30.2427,-92.6317
+ST528,5249 Hughes St  Vinton  LA 79894,Lake Charles,30.1806,-93.5942
+ST529,2191 Young St  Crowley  LA 72881,Lake Charles,30.203,-92.3487
+ST530,5287 Robinson Ave  Orange  LA 77675,Lake Charles,30.0958,-93.7445
+ST531,2096 First St  Crowley  LA 75748,Lake Charles,30.217,-92.3475
+ST532,9853 Roosevelt Ave  Crowley  LA 70675,Lake Charles,30.2438,-92.361
+ST533,8706 Young St  Abbeville  LA 71820,Lake Charles,29.9623,-92.1166
+ST534,6846 Monroe St  Iowa  LA 79396,Lake Charles,30.243,-93.0279
+ST535,621 Patterson Dr  Westlake  LA 73546,Lake Charles,30.2725,-93.2723
+ST536,5528 Garcia Rd  Westlake  LA 70448,Lake Charles,30.2459,-93.2894
+ST537,608 Martin St  Orange  LA 79269,Lake Charles,30.1015,-93.737
+ST538,7183 Collins St  Orange  LA 79248,Lake Charles,30.0885,-93.7188
+ST539,6804 Lee Rd  Abbeville  LA 75558,Lake Charles,29.9659,-92.128
+ST540,1916 Kelly Rd  Jennings  LA 78560,Lake Charles,30.2427,-92.6336
+ST541,1650 Sanchez Rd  Port Neches  LA 78663,Lake Charles,29.9641,-93.9601
+ST542,9563 King Rd  Lake Charles  LA 74580,Lake Charles,30.2244,-93.1982
+ST543,937 Hernandez Ave  Abbeville  LA 71408,Lake Charles,29.9671,-92.1191
+ST544,8712 Gonzales Rd  Eunice  LA 78378,Lake Charles,30.4849,-92.4159
+ST545,9356 Coleman Rd  Orange  LA 77019,Lake Charles,30.0726,-93.7414
+ST546,2961 Jenkins Dr  Lake Arthur  LA 76341,Lake Charles,30.0882,-92.6553
+ST547,1379 Washington St  Westlake  LA 77777,Lake Charles,30.2682,-93.2938
+ST548,9079 Garcia Rd  New Iberia  LA 76412,Lake Charles,30.0215,-91.8447
+ST549,2793 Robinson Ave  Westlake  LA 75578,Lake Charles,30.2658,-93.2595
+ST550,498 Garcia Rd  Eunice  LA 73226,Lake Charles,30.5142,-92.4287
+ST551,6045 Scott St  Jennings  LA 76621,Lake Charles,30.2416,-92.6629
+ST552,1798 James Dr  Jennings  LA 78267,Lake Charles,30.2242,-92.6366
+ST553,8612 Adams Rd  Lake Charles  LA 73249,Lake Charles,30.2462,-93.1945
+ST554,7081 Adams Rd  Sulphur  LA 75217,Lake Charles,30.2544,-93.3511
+ST555,1297 Rodriguez St  Westlake  LA 70723,Lake Charles,30.2259,-93.2884
+ST556,4091 Simmons St  Sulphur  LA 76984,Lake Charles,30.2588,-93.3929
+ST557,2907 Lewis Ave  Nederland  LA 70666,Lake Charles,29.9886,-94.05
+ST558,3423 Johnson St  New Iberia  LA 79876,Lake Charles,29.9946,-91.8307
+ST559,8487 Thomas Rd  Jennings  LA 76012,Lake Charles,30.2042,-92.6509
+ST560,610 Madison Dr  Lafayette  LA 71624,Lake Charles,30.1941,-92.0123
+ST561,9447 Rivera Ave  Orange  LA 77977,Lake Charles,30.0781,-93.756
+ST562,950 Church St  Opelousas  LA 71971,Lake Charles,30.5067,-92.1083
+ST563,1924 Turner Ave  Eunice  LA 75926,Lake Charles,30.4823,-92.4162
+ST564,1492 Jenkins Dr  Opelousas  LA 73786,Lake Charles,30.5386,-92.0622
+ST565,8960 Taylor St  Eunice  LA 79708,Lake Charles,30.5118,-92.4212
+ST566,5499 Maple Ave  Lafayette  LA 77232,Lake Charles,30.2528,-91.9943
+ST567,9380 Allen Dr  Crowley  LA 70960,Lake Charles,30.2229,-92.3995
+ST568,1545 Roberts St  Iowa  LA 78562,Lake Charles,30.2367,-93.0154
+ST569,9893 Washington Rd  Eunice  LA 76238,Lake Charles,30.4743,-92.4452
