@@ -1,0 +1,758 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Customer Locations Map</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+            height: 100vh;
+            width: 100%;
+        }
+        .info-window {
+            font-family: Arial, sans-serif;
+            max-width: 300px;
+        }
+        .customer-name {
+            font-weight: bold;
+            color: #1976d2;
+            margin-bottom: 5px;
+        }
+        .customer-address {
+            color: #666;
+            margin-bottom: 3px;
+        }
+        .customer-phone {
+            color: #2e7d32;
+            font-size: 0.9em;
+        }
+    </style>
+</head>
+<body>
+    <div id="map"></div>
+    
+    <script>
+        function initMap() {
+            const map = new google.maps.Map(document.getElementById("map"), {
+                zoom: 8,
+                center: { lat: 30.5, lng: -93.0 },
+                mapTypeId: google.maps.MapTypeId.ROADMAP
+            });
+            
+            const customers = [
+            {
+                        "name": "Adrien's Supermarket",
+                        "address": "Adrien's Supermarket 3842 West Congress, Lafayette",
+                        "phone": "337-501-0673  Herb",
+                        "latitude": 31.14614,
+                        "longitude": -93.2887
+            },
+            {
+                        "name": "Henderson 1 Stop",
+                        "address": "Henderson 1 Stop 504 HENDERSON HWY, Breaux Bridge",
+                        "phone": "337-434-4019",
+                        "latitude": 31.14286,
+                        "longitude": -93.27966
+            },
+            {
+                        "name": "Cash Saver",
+                        "address": "Cash Saver 1714 Main HWY Street St. Martinville",
+                        "phone": "337-394-2333",
+                        "latitude": 31.1811,
+                        "longitude": -93.25974
+            },
+            {
+                        "name": "Speedway",
+                        "address": "1100 North University Avenue, Lafayette",
+                        "phone": "337-412-6916",
+                        "latitude": 31.16846,
+                        "longitude": -93.23374
+            },
+            {
+                        "name": "B & W Evangeline",
+                        "address": "2013 Evangeline HWY, Jennings",
+                        "phone": "337-824-6313",
+                        "latitude": 31.1103,
+                        "longitude": -93.28654
+            },
+            {
+                        "name": "Hanson Super Foods",
+                        "address": "401 West Plaquemine Street, Jennings",
+                        "phone": "337-824-6463",
+                        "latitude": 31.15054,
+                        "longitude": -93.28982
+            },
+            {
+                        "name": "Dirty Rice",
+                        "address": "608 East HWY 90, Iowa",
+                        "phone": "337-391-9663/337-582-2333",
+                        "latitude": 31.15422,
+                        "longitude": -93.26574
+            },
+            {
+                        "name": "Kerry A Sac",
+                        "address": "103 HWY 90 East, Iowa",
+                        "phone": "337-582-6678",
+                        "latitude": 31.11422,
+                        "longitude": -93.2767
+            },
+            {
+                        "name": "MORE 4 LESS",
+                        "address": "3350 MAPLEWOOD DR., Sulphur",
+                        "phone": "",
+                        "latitude": 31.176379999999998,
+                        "longitude": -93.29774
+            },
+            {
+                        "name": "CHEVRON-NEW",
+                        "address": "2211 RYAN ST, Lake Charles",
+                        "phone": "337-240-8143",
+                        "latitude": 30.187,
+                        "longitude": -93.20076
+            },
+            {
+                        "name": "Piggly Wiggly-Scott",
+                        "address": "5525 Cameron Street, Scott",
+                        "phone": "337-232.9877",
+                        "latitude": 31.14982,
+                        "longitude": -93.28854
+            },
+            {
+                        "name": "Savco",
+                        "address": "620 West Canal Street, Churchpoint",
+                        "phone": "337-684-3127",
+                        "latitude": 31.11854,
+                        "longitude": -93.28694
+            },
+            {
+                        "name": "AJ's",
+                        "address": "7009 Churchpoint HWY, Rayne",
+                        "phone": "337-334-0288",
+                        "latitude": 31.1587,
+                        "longitude": -93.2251
+            },
+            {
+                        "name": "I-10 Chevron-Rayne",
+                        "address": "1045 Churchpoint HWY, Rayne",
+                        "phone": "337-334-9684",
+                        "latitude": 31.18022,
+                        "longitude": -93.24502
+            },
+            {
+                        "name": "I-10 Rayne Travel Center",
+                        "address": "I-10 Rayne Travel Center 1044 Churchpoint HWY, Rayne",
+                        "phone": "337-334-7233",
+                        "latitude": 31.130219999999998,
+                        "longitude": -93.2563
+            },
+            {
+                        "name": "Nonc Kev Meat Market",
+                        "address": "1421 The Blvd, Rayne",
+                        "phone": "337-393-2750",
+                        "latitude": 31.10598,
+                        "longitude": -93.26886
+            },
+            {
+                        "name": "Champagne's-Rayne",
+                        "address": "500 South Adams Avenue, Rayne",
+                        "phone": "337-334-3869",
+                        "latitude": 31.16142,
+                        "longitude": -93.2651
+            },
+            {
+                        "name": "Piggly Wiggly-Rayne",
+                        "address": "702 South Adams Avenue, Rayne",
+                        "phone": "337-334-4233",
+                        "latitude": 31.13574,
+                        "longitude": -93.27798
+            },
+            {
+                        "name": "We Fair",
+                        "address": "300 West Branche, Rayne",
+                        "phone": "337-334-4620",
+                        "latitude": 31.1723,
+                        "longitude": -93.27278
+            },
+            {
+                        "name": "Cuccio's",
+                        "address": "1025 North Avenue G, Crowley",
+                        "phone": "337-783-2140",
+                        "latitude": 31.1283,
+                        "longitude": -93.26542
+            },
+            {
+                        "name": "Crawfish Nest",
+                        "address": "Crawfish Nest 805 West 2nd Street, Crowley",
+                        "phone": "337-783-9900",
+                        "latitude": 31.12438,
+                        "longitude": -93.24918
+            },
+            {
+                        "name": "Cajun Lunch Box",
+                        "address": "605 North Adams Street, Welsh",
+                        "phone": "337-734-4661",
+                        "latitude": 31.10526,
+                        "longitude": -93.23966
+            },
+            {
+                        "name": "Starks Truck Stop",
+                        "address": "Starks Truck Stop 4344 HWY 12 Starks",
+                        "phone": "337-743-5471",
+                        "latitude": 31.13398,
+                        "longitude": -93.2231
+            },
+            {
+                        "name": "Glenn's Mart",
+                        "address": "1312 Gum Cove Road, Vinton",
+                        "phone": "337-589-3520",
+                        "latitude": 31.13238,
+                        "longitude": -93.2315
+            },
+            {
+                        "name": "M & K Pantry",
+                        "address": "1601 HWY 90 West, Vinton",
+                        "phone": "337-589-3333",
+                        "latitude": 31.14534,
+                        "longitude": -93.25134
+            },
+            {
+                        "name": "PHILLIP CALAIS",
+                        "address": "NORTH SIDE/ROAD SIDE",
+                        "phone": "337-377-8817",
+                        "latitude": 31.165499999999998,
+                        "longitude": -93.28798
+            },
+            {
+                        "name": "KENNETH WEEKS",
+                        "address": "LEAVE TICKET ON DESK/CK DEL",
+                        "phone": "251-689-6789",
+                        "latitude": 31.16566,
+                        "longitude": -93.23126
+            },
+            {
+                        "name": "KENNETH ROBERTS-2BOXES",
+                        "address": "SOUTH EAST/WEST ROAD SIDE",
+                        "phone": "(337-802-9706)",
+                        "latitude": 31.1359,
+                        "longitude": -93.22838
+            },
+            {
+                        "name": "TREY ELLIS",
+                        "address": "WEST END ROAD SIDE",
+                        "phone": "251-209-7385",
+                        "latitude": 31.162219999999998,
+                        "longitude": -93.23054
+            },
+            {
+                        "name": "G. MARTINEZ",
+                        "address": "EAST SIDE/ROAD SIDE",
+                        "phone": "979-215-0031",
+                        "latitude": 31.151419999999998,
+                        "longitude": -93.2975
+            },
+            {
+                        "name": "ORLANDO OROZCO",
+                        "address": "EAST END/ROAD SIDE",
+                        "phone": "979-482-6153",
+                        "latitude": 31.11742,
+                        "longitude": -93.23726
+            },
+            {
+                        "name": "TREVOR SOILEAU",
+                        "address": "WEST SIDE / TRACK SIDE",
+                        "phone": "337-459-8490",
+                        "latitude": 31.17734,
+                        "longitude": -93.2671
+            },
+            {
+                        "name": "JOSE ESTRADA",
+                        "address": "JOSE ESTRADA NEEDS NEW CUSTOMER FORM",
+                        "phone": "601-813-4763",
+                        "latitude": 31.110219999999998,
+                        "longitude": -93.24198
+            },
+            {
+                        "name": "BUDDY DEVILLE",
+                        "address": "CUSTOMER HAS ALL OF BARN",
+                        "phone": "225-235-1654",
+                        "latitude": 31.13518,
+                        "longitude": -93.2647
+            },
+            {
+                        "name": "GAYLA BUSTAMONTE",
+                        "address": "GAYLA BUSTAMONTE NORTH END/ EAST SIDE",
+                        "phone": "337-661-1879",
+                        "latitude": 31.16486,
+                        "longitude": -93.24758
+            },
+            {
+                        "name": "L. HERNANDEZ",
+                        "address": "FACING ROAD SIDE",
+                        "phone": "469-236-3593",
+                        "latitude": 31.1171,
+                        "longitude": -93.27254
+            },
+            {
+                        "name": "Missies",
+                        "address": "106 E. Lincoln Street, Sulphur",
+                        "phone": "337-527-6924",
+                        "latitude": 31.116699999999998,
+                        "longitude": -93.29582
+            },
+            {
+                        "name": "Conoco 5th Wheel",
+                        "address": "500 N. BEGLIS PARKWAY, Sulphur",
+                        "phone": "337-274-1532",
+                        "latitude": 31.13798,
+                        "longitude": -93.27334
+            },
+            {
+                        "name": "KINGSPOINT #4",
+                        "address": "3610 E. HWY 90 (NAPOLEAN), Sulphur",
+                        "phone": "337-244-6692",
+                        "latitude": 31.1391,
+                        "longitude": -93.2267
+            },
+            {
+                        "name": "Ponda's",
+                        "address": "20005 HWY 165, Fenton",
+                        "phone": "337-756-2222",
+                        "latitude": 31.11742,
+                        "longitude": -93.25822
+            },
+            {
+                        "name": "TP's Grocery",
+                        "address": "1519 HWY 165, Fenton",
+                        "phone": "337-756-2227",
+                        "latitude": 31.15598,
+                        "longitude": -93.26422
+            },
+            {
+                        "name": "Ted's Quick Stop",
+                        "address": "Ted's Quick Stop 708 1st Street, Kinder",
+                        "phone": "337-738-4765",
+                        "latitude": 31.115579999999998,
+                        "longitude": -93.2775
+            },
+            {
+                        "name": "Feather's",
+                        "address": "121 Panther Trail Drive, Kinder",
+                        "phone": "337-738-7150",
+                        "latitude": 31.10358,
+                        "longitude": -93.25918
+            },
+            {
+                        "name": "Kinder Quick Stop",
+                        "address": "Kinder Quick Stop 13916 HWY 154, Kinder",
+                        "phone": "337-738-7896",
+                        "latitude": 31.105819999999998,
+                        "longitude": -93.25526
+            },
+            {
+                        "name": "Dollar General-REEVES-11635",
+                        "address": "18208 HWY 190, REEVES",
+                        "phone": "337-419-2065",
+                        "latitude": 31.11622,
+                        "longitude": -93.23358
+            },
+            {
+                        "name": "Chadeaux's",
+                        "address": "14440 HWY 165, Kinder",
+                        "phone": "337-738-3040",
+                        "latitude": 31.13438,
+                        "longitude": -93.27518
+            },
+            {
+                        "name": "Myer's Landing",
+                        "address": "169 Myers Landing Road, Lake Arthur",
+                        "phone": "337-774-2338",
+                        "latitude": 31.117259999999998,
+                        "longitude": -93.29766
+            },
+            {
+                        "name": "Dollar General-03480-KINDER",
+                        "address": "14612 HWY 165, Kinder",
+                        "phone": "985-589-7618",
+                        "latitude": 31.15742,
+                        "longitude": -93.25566
+            },
+            {
+                        "name": "The Buzz",
+                        "address": "1222 3rd Avenue, Kinder",
+                        "phone": "337-292-2007",
+                        "latitude": 31.14342,
+                        "longitude": -93.22854
+            },
+            {
+                        "name": "Kerry A Sac",
+                        "address": "103 HWY 90 East, Iowa",
+                        "phone": "337-582-6678",
+                        "latitude": 31.11422,
+                        "longitude": -93.2767
+            },
+            {
+                        "name": "Dirty Rice",
+                        "address": "608 East HWY 90, Iowa",
+                        "phone": "337-391-9663/337-582-2333",
+                        "latitude": 31.15422,
+                        "longitude": -93.26574
+            },
+            {
+                        "name": "Aladdin Construction",
+                        "address": "Aladdin Construction, Kinder",
+                        "phone": "228-348-1889",
+                        "latitude": 31.15014,
+                        "longitude": -93.28398
+            },
+            {
+                        "name": "Dollar General-Hayes  20369",
+                        "address": "8110 Jone Primeaux Road, Hayes",
+                        "phone": "337-347-6708",
+                        "latitude": 31.13046,
+                        "longitude": -93.27174
+            },
+            {
+                        "name": "Cajun Grocery",
+                        "address": "7744 East HWY 14, Hayes",
+                        "phone": "337-662-3348",
+                        "latitude": 31.1535,
+                        "longitude": -93.26238
+            },
+            {
+                        "name": "ELTON EXPRESS",
+                        "address": "1807 HWY 190, Elton",
+                        "phone": "337-584-2032",
+                        "latitude": 31.15982,
+                        "longitude": -93.27006
+            },
+            {
+                        "name": "S & W",
+                        "address": "3955 HWY 190, Elton",
+                        "phone": "337-584-3663",
+                        "latitude": 31.1707,
+                        "longitude": -93.23294
+            },
+            {
+                        "name": "Kerry A Sac",
+                        "address": "103 HWY 90 East, Iowa",
+                        "phone": "337-582-6678",
+                        "latitude": 31.11422,
+                        "longitude": -93.2767
+            },
+            {
+                        "name": "Dirty Rice",
+                        "address": "608 East HWY 90, Iowa",
+                        "phone": "337-391-9663/337-582-2333",
+                        "latitude": 31.15422,
+                        "longitude": -93.26574
+            },
+            {
+                        "name": "Smoker's Express",
+                        "address": "3501 Gerstner Memorial Drive, Lake Charles",
+                        "phone": "337-474-6585",
+                        "latitude": 30.264760000000003,
+                        "longitude": -93.24956
+            },
+            {
+                        "name": "JONES GROCERY",
+                        "address": "1843 Gerstner Memorial Drive, Lake Charles",
+                        "phone": "337-436-2810",
+                        "latitude": 30.25732,
+                        "longitude": -93.1854
+            },
+            {
+                        "name": "GX Louisiana **HOP-IN",
+                        "address": "1717 Gerstner Memorial Dr., Lake Charles",
+                        "phone": "337-494-5902",
+                        "latitude": 30.24868,
+                        "longitude": -93.22516
+            },
+            {
+                        "name": "Crying Eagle Brewing Co.",
+                        "address": "1165 E. McNeese st, Lake Charles",
+                        "phone": "337-564-9210",
+                        "latitude": 30.2654,
+                        "longitude": -93.2538
+            },
+            {
+                        "name": "JF Peto",
+                        "address": "1848 1st Street, Lake Charles",
+                        "phone": "337-433-5272",
+                        "latitude": 30.241480000000003,
+                        "longitude": -93.21227999999999
+            },
+            {
+                        "name": "HD Trucking",
+                        "address": "5501 Oplelousas Street, Lake Charles",
+                        "phone": "337-439-9710",
+                        "latitude": 30.206680000000002,
+                        "longitude": -93.20284
+            },
+            {
+                        "name": "System Service Broadband",
+                        "address": "System Service Broadband 201 Fred Road, Lake Charles",
+                        "phone": "337-278-3058",
+                        "latitude": 30.241880000000002,
+                        "longitude": -93.21132
+            },
+            {
+                        "name": "WHC-ENERGY",
+                        "address": "8120 INTERCOASTAL PKWY, Hackberry",
+                        "phone": "337-773-7073-SANDY",
+                        "latitude": 31.13886,
+                        "longitude": -93.24102
+            },
+            {
+                        "name": "Dollar General-Hackberry",
+                        "address": "805 Main Street, Hackberry",
+                        "phone": "337-443-0910",
+                        "latitude": 31.17542,
+                        "longitude": -93.2855
+            },
+            {
+                        "name": "Sasol-Ethylene",
+                        "address": "Westlake",
+                        "phone": "337-244-5911/SHAWN",
+                        "latitude": 31.17862,
+                        "longitude": -93.26398
+            },
+            {
+                        "name": "SASOL-ALCOHOL",
+                        "address": "Westlake",
+                        "phone": "337-244-5911/SHAWN",
+                        "latitude": 31.17862,
+                        "longitude": -93.26398
+            },
+            {
+                        "name": "Sasol-Lab",
+                        "address": "Westlake",
+                        "phone": "337-244-5911/SHAWN",
+                        "latitude": 31.17862,
+                        "longitude": -93.26398
+            },
+            {
+                        "name": "Sasol-South Shop",
+                        "address": "Westlake",
+                        "phone": "337-244-5911/SHAWN",
+                        "latitude": 31.17862,
+                        "longitude": -93.26398
+            },
+            {
+                        "name": "Sasol-ERT",
+                        "address": "Westlake",
+                        "phone": "337-244-5911/SHAWN",
+                        "latitude": 31.17862,
+                        "longitude": -93.26398
+            },
+            {
+                        "name": "Johnson Bayou Convience",
+                        "address": "6328 Gulf Beach HWY, Lake Charles",
+                        "phone": "337-569-2128",
+                        "latitude": 30.22052,
+                        "longitude": -93.19084
+            },
+            {
+                        "name": "More 4 Less # 10",
+                        "address": "4119 Louisiana Avenue, Lake Charles",
+                        "phone": "337-562-2191",
+                        "latitude": 30.2118,
+                        "longitude": -93.2062
+            },
+            {
+                        "name": "Time Loop 13",
+                        "address": "428 7th Street, Lake Charles",
+                        "phone": "409-221-2169",
+                        "latitude": 30.264760000000003,
+                        "longitude": -93.24388
+            },
+            {
+                        "name": "Sunshine Liquor- (HWY 14)",
+                        "address": "Sunshine Liquor- (HWY 14) 3031 GERSHNER MEMORIAL DR., Lake Charles",
+                        "phone": "337-462-3666",
+                        "latitude": 30.21404,
+                        "longitude": -93.23628
+            },
+            {
+                        "name": "Sunshine Liquor (BROAD)",
+                        "address": "Sunshine Liquor (BROAD) 1824 Broad Street, Lake Charles",
+                        "phone": "337-491-0507",
+                        "latitude": 30.229000000000003,
+                        "longitude": -93.18036
+            },
+            {
+                        "name": "Delta Food 5",
+                        "address": "112 US HWY 171, Lake Charles",
+                        "phone": "337-855-8766",
+                        "latitude": 30.201800000000002,
+                        "longitude": -93.24235999999999
+            },
+            {
+                        "name": "Sasol-Ethylene",
+                        "address": "Westlake",
+                        "phone": "337-244-5911/SHAWN",
+                        "latitude": 31.17862,
+                        "longitude": -93.26398
+            },
+            {
+                        "name": "SASOL-ALCOHOL",
+                        "address": "Westlake",
+                        "phone": "337-244-5911/SHAWN",
+                        "latitude": 31.17862,
+                        "longitude": -93.26398
+            },
+            {
+                        "name": "Sasol-Lab",
+                        "address": "Westlake",
+                        "phone": "337-244-5911/SHAWN",
+                        "latitude": 31.17862,
+                        "longitude": -93.26398
+            },
+            {
+                        "name": "Sasol-South Shop",
+                        "address": "Westlake",
+                        "phone": "337-244-5911/SHAWN",
+                        "latitude": 31.17862,
+                        "longitude": -93.26398
+            },
+            {
+                        "name": "Sasol-ERT",
+                        "address": "Westlake",
+                        "phone": "337-244-5911/SHAWN",
+                        "latitude": 31.17862,
+                        "longitude": -93.26398
+            },
+            {
+                        "name": "TJ's",
+                        "address": "1115 Sam Houston Jones PKWay, Lake Charles",
+                        "phone": "337-855-4615",
+                        "latitude": 30.233800000000002,
+                        "longitude": -93.1786
+            },
+            {
+                        "name": "Delta Food 7",
+                        "address": "923 Park Road, Lake Charles",
+                        "phone": "337-499-7215",
+                        "latitude": 30.24116,
+                        "longitude": -93.20236
+            },
+            {
+                        "name": "Neighborhood Quick Mart",
+                        "address": "1414 North Prater Road, Lake Charles",
+                        "phone": "337-400-5443",
+                        "latitude": 30.259,
+                        "longitude": -93.18484
+            },
+            {
+                        "name": "STOP N SAVE",
+                        "address": "STOP N SAVE 3215 HIGHWAY 90 Westlake",
+                        "phone": "318-554-9337",
+                        "latitude": 31.17022,
+                        "longitude": -93.23806
+            },
+            {
+                        "name": "BRONCO DISCOUNT",
+                        "address": "393 N. HWY 171, Lake Charles",
+                        "phone": "337-526-7082",
+                        "latitude": 30.187640000000002,
+                        "longitude": -93.22876
+            },
+            {
+                        "name": "Mike Hooks",
+                        "address": "409 Mike Hooks Road Westlake",
+                        "phone": "337-855-8766",
+                        "latitude": 31.17726,
+                        "longitude": -93.22518
+            }
+];
+            
+            const bounds = new google.maps.LatLngBounds();
+            
+            const depotColors = {
+                'Lake Charles': '#FF6B6B',
+                'Lufkin': '#4ECDC4', 
+                'Leesville': '#45B7D1',
+                'Other': '#96CEB4'
+            };
+            
+            customers.forEach((customer, index) => {
+                const position = { lat: customer.latitude, lng: customer.longitude };
+                
+                let depot = 'Other';
+                const addr = customer.address.toLowerCase();
+                if (addr.includes('lake charles') || addr.includes('sulphur') || addr.includes('westlake') || addr.includes('hackberry')) {
+                    depot = 'Lake Charles';
+                } else if (addr.includes('tx') || addr.includes('lufkin')) {
+                    depot = 'Lufkin';
+                } else if (addr.includes('leesville') || addr.includes('la')) {
+                    depot = 'Leesville';
+                }
+                
+                const color = depotColors[depot];
+                
+                const marker = new google.maps.Marker({
+                    position: position,
+                    map: map,
+                    title: customer.name,
+                    icon: {
+                        url: 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent(`
+                            <svg width="32" height="32" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
+                                <circle cx="16" cy="16" r="12" fill="${color}" stroke="#FFFFFF" stroke-width="2"/>
+                                <text x="16" y="20" text-anchor="middle" fill="white" font-size="8" font-weight="bold">${index + 1}</text>
+                            </svg>
+                        `),
+                        scaledSize: new google.maps.Size(32, 32),
+                    }
+                });
+                
+                const infoContent = `
+                    <div class="info-window">
+                        <div class="customer-name">${customer.name}</div>
+                        <div class="customer-address">${customer.address}</div>
+                        ${customer.phone ? `<div class="customer-phone">📞 ${customer.phone}</div>` : ''}
+                        <div style="margin-top: 8px; font-size: 0.8em; color: #888;">
+                            Depot: ${depot}<br>
+                            Coordinates: ${customer.latitude.toFixed(4)}, ${customer.longitude.toFixed(4)}
+                        </div>
+                    </div>
+                `;
+                
+                const infoWindow = new google.maps.InfoWindow({
+                    content: infoContent
+                });
+                
+                marker.addListener('click', () => {
+                    infoWindow.open(map, marker);
+                });
+                
+                bounds.extend(position);
+            });
+            
+            if (customers.length > 0) {
+                map.fitBounds(bounds);
+            }
+            
+            const legend = document.createElement('div');
+            legend.style.cssText = `
+                background: white;
+                padding: 10px;
+                margin: 10px;
+                border-radius: 5px;
+                box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+                font-family: Arial, sans-serif;
+                font-size: 14px;
+            `;
+            legend.innerHTML = `
+                <div style="font-weight: bold; margin-bottom: 5px;">Customer Locations (${customers.length} total)</div>
+                <div><span style="color: #FF6B6B;">●</span> Lake Charles Region</div>
+                <div><span style="color: #4ECDC4;">●</span> Lufkin Region</div>
+                <div><span style="color: #45B7D1;">●</span> Leesville Region</div>
+                <div><span style="color: #96CEB4;">●</span> Other Locations</div>
+            `;
+            map.controls[google.maps.ControlPosition.RIGHT_BOTTOM].push(legend);
+        }
+    </script>
+    
+    <script async defer
+        src="https://maps.googleapis.com/maps/api/js?key=&callback=initMap">
+    </script>
+</body>
+</html>
